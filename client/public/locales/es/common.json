@@ -1,0 +1,25 @@
+{
+  "nav": {
+    "dashboardPreview": "Vista previa del panel →",
+    "signIn": "Iniciar Sesión",
+    "getStarted": "Comenzar"
+  },
+  "hero": {
+    "badge": "Impulsado por IA Local y Arquitectura de Costo Cero",
+    "title1": "Gestión de Reputación,",
+    "title2": "Automatizada Localmente",
+    "subtitle": "Optimiza los comentarios de los clientes en múltiples ubicaciones. Ingiere reseñas al instante, analiza sentimientos sin costos recurrentes de tokens y aprueba borradores de respuesta de IA en segundos.",
+    "startTrial": "Iniciar Prueba Gratuita",
+    "viewDashboard": "Ver Panel en Vivo"
+  },
+  "features": {
+    "title": "Lo Que Puedes Esperar",
+    "subtitle": "Diseñado para rendimiento en múltiples ubicaciones y eficiencia de costos.",
+    "f1Title": "Cero Costos Recurrentes de IA",
+    "f1Desc": "Aprovecha el procesamiento de IA local en la ingesta, ahorrándote cientos en tokens de la nube cada mes.",
+    "f2Title": "Canal de Ingesta Automatizado",
+    "f2Desc": "Los webhooks capturan, deduplican y analizan automáticamente las reseñas entrantes en cuanto se publican.",
+    "f3Title": "Flujos de Aprobación Inteligentes",
+    "f3Desc": "Revisa los borradores de IA, ajusta el tono con edición en línea y aprueba con un solo clic."
+  }
+}
