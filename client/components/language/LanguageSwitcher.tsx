@@ -1,31 +1,46 @@
 'use client'
 
-import { ClientOnlyWrapper } from '@/components/utils/ClientOnlyWrapper'
 import { useTranslation } from 'react-i18next'
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 
 export function LanguageSwitcher() {
   const { i18n } = useTranslation()
 
-  const changeLanguage = (lng: string) => i18n.changeLanguage(lng)
+  const languages = [
+    { value: 'en', label: 'EN', text: 'English' },
+    { value: 'es', label: 'ES', text: 'Spanish' },
+  ]
 
-  const currentLang = i18n.language || 'en'
+  const changeLanguage = (lng: string | null) => i18n.changeLanguage(lng!)
+
+  const currentLang = i18n.language || languages[0].value
 
   return (
-    <ClientOnlyWrapper>
-      <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-md text-xs font-medium">
-        <button
-          onClick={() => changeLanguage('en')}
-          className={`px-2 py-1 rounded transition ${!currentLang.startsWith('es') ? 'bg-white shadow-sm text-black' : 'text-gray-500 hover:text-black'}`}
-        >
-          EN
-        </button>
-        <button
-          onClick={() => changeLanguage('es')}
-          className={`px-2 py-1 rounded transition ${currentLang.startsWith('es') ? 'bg-white shadow-sm text-black' : 'text-gray-500 hover:text-black'}`}
-        >
-          ES
-        </button>
-      </div>
-    </ClientOnlyWrapper>
+    <Select
+      defaultValue={currentLang}
+      value={currentLang}
+      onValueChange={changeLanguage}
+      items={languages}
+    >
+      <SelectTrigger className="w-20">
+        <SelectValue placeholder={currentLang.toUpperCase()} />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectGroup>
+          {languages.map((item) => (
+            <SelectItem key={item.value} value={item.value}>
+              {item.text}
+            </SelectItem>
+          ))}
+        </SelectGroup>
+      </SelectContent>
+    </Select>
   )
 }

@@ -1,21 +1,19 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { getCurrentUser } from '@/lib/supabase/user'
 
 export async function fetchGoogleLocations() {
   const supabase = await createClient()
 
   // 1. Get current authenticated user
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) return { error: 'Not authenticated', locations: [] }
+  const user = await getCurrentUser()
 
   // 2. Retrieve the user's stored Google access token from user_integrations
   const { data: integration, error: intError } = await supabase
     .from('user_integrations')
     .select('access_token')
-    .eq('user_id', user.id)
+    .eq('user_id', user!.id)
     .eq('provider', 'google')
     .single()
 

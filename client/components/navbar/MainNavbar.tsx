@@ -7,7 +7,13 @@ import { useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import { LanguageSwitcher } from '@/components/language/LanguageSwitcher'
 
-import { Zap } from 'lucide-react'
+import { LogOut, Zap } from 'lucide-react'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import { Button } from '@/components/ui/button'
 
 export function NavigationHeader({
   onOpenAuth,
@@ -75,12 +81,24 @@ export function NavigationHeader({
             >
               Dashboard →
             </Link>
-            <button
-              onClick={handleSignOut}
-              className="text-sm font-medium text-gray-600 hover:text-black px-2 py-1.5"
-            >
-              Sign Out
-            </button>
+            <Popover>
+              <PopoverTrigger
+                openOnHover
+                render={
+                  <Button
+                    onClick={handleSignOut}
+                    variant="ghost"
+                    className="cursor-pointer"
+                    size="icon"
+                  >
+                    <LogOut size={16} />
+                  </Button>
+                }
+              />
+              <PopoverContent className="w-20 d-flex justify-center items-center text-sm text-gray-700">
+                Sign Out
+              </PopoverContent>
+            </Popover>
           </div>
         ) : (
           // Guest View

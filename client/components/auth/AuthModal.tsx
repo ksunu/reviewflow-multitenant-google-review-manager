@@ -64,7 +64,7 @@ export function AuthModal({
         <div className="flex justify-between items-center">
           <h2 className="text-xl font-bold text-gray-900">
             {mode === 'login'
-              ? 'Welcome Back to ReviewPulse'
+              ? 'Welcome Back to Review Manager'
               : 'Start Your Free AI Journey'}
           </h2>
           <button

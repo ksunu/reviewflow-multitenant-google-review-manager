@@ -2,24 +2,19 @@ import { createClient } from '@/lib/supabase/server'
 import { ReviewCard } from './ReviewCard'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
+import { getCurrentUser } from '@/lib/supabase/user'
 
 export default async function ReviewsPage() {
   const supabase = await createClient()
 
   // 1. Get authenticated user
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser()
-  if (userError || !user) {
-    redirect('/')
-  }
+  const user = await getCurrentUser()
 
   // 2. Get the user's tenant_id
   const { data: membership, error: membershipError } = await supabase
     .from('tenant_users')
     .select('tenant_id')
-    .eq('user_id', user.id)
+    .eq('user_id', user!.id)
     .single()
 
   if (membershipError || !membership) {

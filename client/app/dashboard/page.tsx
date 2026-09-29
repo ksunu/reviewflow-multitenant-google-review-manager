@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { WorkspaceSelector } from '@/components/locations/WorkSpaceSelector'
+import { getCurrentUser } from '@/lib/supabase/user'
 
 export default async function DashboardPage({
   searchParams,
@@ -10,19 +11,13 @@ export default async function DashboardPage({
 }) {
   const supabase = await createClient()
 
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser()
-  if (userError || !user) {
-    redirect('/')
-  }
+  const user = await getCurrentUser()
 
   // 1. Fetch ALL tenants this user belongs to
   const { data: memberships, error: membershipError } = await supabase
     .from('tenant_users')
     .select('tenant_id, tenants(id, name)')
-    .eq('user_id', user.id)
+    .eq('user_id', user!.id)
 
   if (membershipError || !memberships || memberships.length === 0) {
     redirect('/onboarding')
@@ -59,7 +54,7 @@ export default async function DashboardPage({
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-4 border rounded-xl shadow-sm">
         <div>
           <h1 className="text-xl font-bold text-gray-900">
-            ReviewPulse Dashboard
+            Review Manager Dashboard
           </h1>
           <p className="text-xs text-gray-500">
             Managing reputation and AI replies for your workspace.

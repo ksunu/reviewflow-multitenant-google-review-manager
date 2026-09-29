@@ -2,18 +2,14 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { getCurrentUser } from '@/lib/supabase/user'
 
 export async function completeOnboarding(formData: FormData) {
   const supabase = await createClient()
 
   // 1. Get the currently logged-in user
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser()
-  if (userError || !user) {
-    redirect('/')
-  }
+  const user = await getCurrentUser()
+  if (!user) redirect('/')
 
   const businessName = (formData.get('businessName') as string) || 'My Business'
 

@@ -4,6 +4,7 @@ import { PublicPlaceSearch } from '@/components/locations/PublicPlaceSearch'
 import { LocationsList } from '@/components/locations/LocationsList'
 import { WorkspaceSelector } from '@/components/locations/WorkSpaceSelector'
 import Link from 'next/link'
+import { getCurrentUser } from '@/lib/supabase/user'
 
 export default async function LocationsPage({
   searchParams,
@@ -13,19 +14,13 @@ export default async function LocationsPage({
   const resolvedSearchParams = await searchParams
   const supabase = await createClient()
 
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser()
-  if (userError || !user) {
-    redirect('/')
-  }
+  const user = await getCurrentUser()
 
   // 1. Fetch ALL tenants this user belongs to
   const { data: memberships, error: membershipError } = await supabase
     .from('tenant_users')
     .select('tenant_id, tenants(id, name)')
-    .eq('user_id', user.id)
+    .eq('user_id', user!.id)
 
   if (membershipError || !memberships || memberships.length === 0) {
     redirect('/onboarding')

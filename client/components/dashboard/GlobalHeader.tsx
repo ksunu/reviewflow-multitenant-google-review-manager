@@ -13,7 +13,7 @@ export function GlobalHeader() {
           RP
         </div>
         <span className="font-bold text-lg tracking-tight text-gray-900">
-          ReviewPulse
+          Review Manager
         </span>
       </div>
 

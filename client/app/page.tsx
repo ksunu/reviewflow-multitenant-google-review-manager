@@ -105,7 +105,7 @@ export default function LandingPage() {
         </section>
 
         <footer className="border-t py-8 px-6 text-center text-xs text-gray-400">
-          &copy; {new Date().getFullYear()} ReviewPulse SaaS. All rights
+          &copy; {new Date().getFullYear()} Review Manager SaaS. All rights
           reserved.
         </footer>
 

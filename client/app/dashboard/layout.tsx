@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { WorkspaceSelector } from '@/components/locations/WorkSpaceSelector'
+import { LanguageSwitcher } from '@/components/language/LanguageSwitcher'
+import { getCurrentUser } from '@/lib/supabase/user'
 
 export default async function DashboardLayout({
   children,
@@ -13,11 +15,9 @@ export default async function DashboardLayout({
   const resolvedSearchParams = await searchParams
   const supabase = await createClient()
 
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser()
-  if (userError || !user) {
+  const user = await getCurrentUser()
+
+  if (!user) {
     redirect('/')
   }
 
@@ -48,7 +48,7 @@ export default async function DashboardLayout({
               className="font-bold text-gray-900 text-lg tracking-tight flex items-center gap-2"
             >
               <span className="w-3 h-3 rounded-full bg-purple-600"></span>
-              ReviewPulse
+              Review Manager
             </Link>
 
             {/* Navigation Links */}
@@ -87,6 +87,7 @@ export default async function DashboardLayout({
             >
               + New
             </Link>
+            <LanguageSwitcher />
           </div>
         </div>
       </header>
