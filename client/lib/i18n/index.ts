@@ -20,6 +20,7 @@ i18n
         common: esCommon,
       },
     },
+    lng: 'en',
     fallbackLng: 'en',
     defaultNS: 'common',
     ns: ['common'],

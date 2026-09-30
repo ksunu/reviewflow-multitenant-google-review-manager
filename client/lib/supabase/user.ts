@@ -7,7 +7,7 @@ export const getCurrentUser = cache(async () => {
     data: { user },
     error,
   } = await supabase.auth.getUser()
-  console.log(user, error)
+
   if (error || !user) return null
 
   return user

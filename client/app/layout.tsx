@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
+import { I18nProvider } from '@/components/providers/I18nProvider'
 import './globals.css'
 
 const geistSans = Geist({
@@ -24,10 +25,17 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className="h-full">
-      <body className="min-h-full flex flex-col" suppressHydrationWarning>
-        {children}
-      </body>
-    </html>
+    <>
+      <script
+        src={`https://maps.googleapis.com/maps/api/js?key=${process.env.GOOGLE_MAPS_API_KEY}&libraries=places&loading=async`}
+        async
+        defer
+      ></script>
+      <html lang="en" className="h-full">
+        <body className="min-h-full flex flex-col" suppressHydrationWarning>
+          <I18nProvider>{children}</I18nProvider>
+        </body>
+      </html>
+    </>
   )
 }

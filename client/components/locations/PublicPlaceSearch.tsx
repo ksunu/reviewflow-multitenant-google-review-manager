@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { searchPublicPlaces } from '@/app/dashboard/locations/actions'
+import { searchPublicPlaces } from '@/app/dashboard/[workspaceId]/locations/actions'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 

@@ -1,159 +1,226 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { WorkspaceSelector } from '@/components/locations/WorkSpaceSelector'
+import {
+  Building2,
+  Plus,
+  Star,
+  MessageSquare,
+  AlertCircle,
+  ArrowRight,
+} from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { getCurrentUser } from '@/lib/supabase/user'
 
-export default async function DashboardPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ tenantId?: string }>
-}) {
+export default async function DashboardPage() {
   const supabase = await createClient()
 
   const user = await getCurrentUser()
 
-  // 1. Fetch ALL tenants this user belongs to
-  const { data: memberships, error: membershipError } = await supabase
-    .from('tenant_users')
-    .select('tenant_id, tenants(id, name)')
-    .eq('user_id', user!.id)
+  if (!user) redirect('/login')
 
-  if (membershipError || !memberships || memberships.length === 0) {
-    redirect('/onboarding')
+  // 1. Fetch all workspaces the user belongs to
+  const { data: memberships, error: membershipError } = await supabase
+    .from('workspace_members')
+    .select(
+      `
+      workspace_id,
+      role,
+      workspaces (
+        id,
+        name,
+        slug,
+        created_at
+      )
+    `,
+    )
+    .eq('user_id', user.id)
+
+  if (membershipError) {
+    console.error('Error fetching memberships:', membershipError)
   }
 
-  const tenants = memberships.map((m: any) => m.tenants).filter(Boolean)
+  // Extract workspaces list safely
+  const workspaces = memberships?.map((m) => m.workspaces).filter(Boolean) || []
+  const workspaceIds = workspaces.map((w) => w?.id).filter(Boolean) as string[]
 
-  // 2. Determine active tenant from searchParams or default to the first one
-  const resolvedSearchParams = await searchParams
-  const activeTenantId = resolvedSearchParams.tenantId || tenants[0]?.id
-  const isValidTenant = tenants.some((t: any) => t.id === activeTenantId)
-  const currentTenantId = isValidTenant ? activeTenantId : tenants[0].id
+  // 2. Fetch aggregate stats across all user workspaces (if any exist)
+  let totalReviews = 0
+  let averageRating = 0
+  let totalLocations = 0
 
-  // 3. Fetch dashboard stats SCOPED to the active tenant
-  const { count: locationCount } = await supabase
-    .from('locations')
-    .select('*', { count: 'exact', head: true })
-    .eq('tenant_id', currentTenantId)
+  if (workspaceIds.length > 0) {
+    // Get locations count
+    const { count: locCount } = await supabase
+      .from('locations')
+      .select('*', { count: 'exact', head: true })
+      .in('workspace_id', workspaceIds)
 
-  // Fetch locations preview for this workspace
-  const { data: locations } = await supabase
-    .from('locations')
-    .select('id, name, place_address')
-    .eq('tenant_id', currentTenantId)
-    .limit(4)
+    totalLocations = locCount || 0
 
-  const activeTenantName = tenants.find(
-    (t: any) => t.id === currentTenantId,
-  )?.name
+    // Get reviews stats
+    const { data: reviewsData } = await supabase
+      .from('reviews')
+      .select('rating')
+      .in('workspace_id', workspaceIds)
+
+    if (reviewsData && reviewsData.length > 0) {
+      totalReviews = reviewsData.length
+      const sum = reviewsData.reduce((acc, r) => acc + r.rating, 0)
+      averageRating = Number((sum / totalReviews).toFixed(1))
+    }
+  }
+
+  // 3. Empty State: If user has no workspaces yet
+  if (workspaces.length === 0) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center p-6 bg-background">
+        <Card className="max-w-md w-full text-center p-6 border-dashed">
+          <CardHeader>
+            <div className="mx-auto bg-primary/10 p-3 rounded-full w-fit mb-2 text-primary">
+              <Building2 className="w-8 h-8" />
+            </div>
+            <CardTitle className="text-xl">Welcome to Review Manager</CardTitle>
+            <CardDescription>
+              You don&apos;t have any workspaces yet. Create your first
+              workspace to start managing locations and customer reviews.
+            </CardDescription>
+          </CardHeader>
+          <CardFooter className="justify-center pt-2">
+            <Button asChild className="w-full">
+              <Link href="/dashboard/new">
+                <Plus className="w-4 h-4 mr-2" /> Create Workspace
+              </Link>
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
+    )
+  }
 
   return (
-    <div className="p-6 space-y-8 max-w-5xl mx-auto">
-      {/* Header & Workspace Switcher */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-4 border rounded-xl shadow-sm">
+    <div className="min-h-screen bg-background p-8 space-y-8 max-w-7xl mx-auto">
+      {/* Top Header */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">
-            Review Manager Dashboard
-          </h1>
-          <p className="text-xs text-gray-500">
-            Managing reputation and AI replies for your workspace.
+          <h1 className="text-3xl font-bold tracking-tight">Command Center</h1>
+          <p className="text-muted-foreground">
+            Global overview across all your connected workspaces and locations.
           </p>
         </div>
-
-        <div className="flex items-center gap-3">
-          {/* Workspace Switcher Component */}
-          <WorkspaceSelector
-            tenants={tenants}
-            currentTenantId={currentTenantId}
-          />
-
-          <Link
-            href={`/dashboard/locations?tenantId=${currentTenantId}`}
-            className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium rounded-md transition shadow-sm"
-          >
-            Manage Locations 📍
+        <Button asChild>
+          <Link href="/dashboard/new">
+            <Plus className="w-4 h-4 mr-2" /> New Workspace
           </Link>
-        </div>
+        </Button>
       </div>
 
-      {/* Quick Metrics / Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="p-4 bg-white border rounded-xl shadow-sm space-y-1">
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-            Linked Locations
-          </p>
-          <p className="text-2xl font-bold text-gray-900">
-            {locationCount ?? 0}
-          </p>
-        </div>
-        <div className="p-4 bg-white border rounded-xl shadow-sm space-y-1">
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-            Active Workspace
-          </p>
-          <p className="text-lg font-semibold text-purple-600 truncate">
-            {activeTenantName}
-          </p>
-        </div>
-        <div className="p-4 bg-white border rounded-xl shadow-sm space-y-1">
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-            AI Sync Status
-          </p>
-          <p className="text-sm font-medium text-green-600 flex items-center gap-1.5 mt-1">
-            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>{' '}
-            Ready & Connected
-          </p>
-        </div>
-      </div>
-
-      {/* Locations Preview Section */}
-      <div className="bg-white border rounded-xl p-6 space-y-4 shadow-sm">
-        <div className="flex justify-between items-center">
-          <h2 className="text-base font-bold text-gray-900">
-            Workspace Locations Overview
-          </h2>
-          <Link
-            href={`/dashboard/locations?tenantId=${currentTenantId}`}
-            className="text-xs text-purple-600 hover:underline font-medium"
-          >
-            View All →
-          </Link>
-        </div>
-
-        {locations && locations.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {locations.map((loc) => (
-              <div
-                key={loc.id}
-                className="p-3 border rounded-lg bg-gray-50 flex justify-between items-center"
-              >
-                <div>
-                  <h3 className="font-semibold text-sm text-gray-800">
-                    {loc.name}
-                  </h3>
-                  <p className="text-xs text-gray-500 truncate max-w-xs">
-                    {loc.place_address || 'No address'}
-                  </p>
-                </div>
-                <span className="text-xs px-2.5 py-1 bg-green-50 text-green-700 rounded-full font-medium">
-                  Connected
-                </span>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-8 space-y-2">
-            <p className="text-sm text-gray-500">
-              No locations linked to this workspace yet.
+      {/* Aggregate Metric Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+            <CardTitle className="text-sm font-medium">Total Reviews</CardTitle>
+            <MessageSquare className="w-4 h-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalReviews}</div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Across all workspaces
             </p>
-            <Link
-              href={`/dashboard/locations?tenantId=${currentTenantId}`}
-              className="inline-block text-xs font-medium text-purple-600 hover:underline"
-            >
-              + Link your first location
-            </Link>
-          </div>
-        )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+            <CardTitle className="text-sm font-medium">
+              Blended Rating
+            </CardTitle>
+            <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{averageRating || 'N/A'}</div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Overall average score
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+            <CardTitle className="text-sm font-medium">
+              Active Locations
+            </CardTitle>
+            <Building2 className="w-4 h-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalLocations}</div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Monitored business spots
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Workspaces Section */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold tracking-tight">
+            Your Workspaces
+          </h2>
+          <span className="text-sm text-muted-foreground">
+            {workspaces.length}{' '}
+            {workspaces.length === 1 ? 'workspace' : 'workspaces'} total
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {workspaces.map((workspace: any) => {
+            if (!workspace) return null
+            return (
+              <Card
+                key={workspace.id}
+                className="hover:border-primary/50 transition-colors flex flex-col justify-between"
+              >
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div className="bg-primary/10 text-primary p-2.5 rounded-lg">
+                      <Building2 className="w-5 h-5" />
+                    </div>
+                    <span className="text-xs font-mono bg-muted px-2 py-1 rounded text-muted-foreground">
+                      Active
+                    </span>
+                  </div>
+                  <CardTitle className="text-lg mt-3">
+                    {workspace.name}
+                  </CardTitle>
+                  <CardDescription className="font-mono text-xs truncate">
+                    slug: {workspace.slug}
+                  </CardDescription>
+                </CardHeader>
+                <CardFooter className="pt-2 border-t bg-muted/20">
+                  <Button
+                    asChild
+                    variant="ghost"
+                    className="w-full justify-between hover:bg-background"
+                  >
+                    <Link href={`/dashboard/${workspace.id}`}>
+                      <span>View Workspace</span>
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </Link>
+                  </Button>
+                </CardFooter>
+              </Card>
+            )
+          })}
+        </div>
       </div>
     </div>
   )

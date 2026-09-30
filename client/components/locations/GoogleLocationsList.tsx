@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { fetchGoogleLocations } from '@/app/dashboard/locations/actions'
+import { fetchGoogleLocations } from '@/app/dashboard/[workspaceId]/locations/actions'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 
