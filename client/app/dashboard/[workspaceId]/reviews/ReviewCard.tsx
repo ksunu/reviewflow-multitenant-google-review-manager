@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { updateReviewResponse } from '../actions'
+import { updateReviewResponse } from '../../actions'
 
 interface ReviewItemProps {
   review: {
