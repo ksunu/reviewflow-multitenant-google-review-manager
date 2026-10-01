@@ -57,7 +57,11 @@ export default async function WorkspaceLayout({
   return (
     <div className="flex bg-background overflow-hidden">
       <SidebarProvider>
-        <AppSideBar workspaceId={workspaceId} user={user} />
+        <AppSideBar
+          workspaceId={workspaceId}
+          workspace={workspace}
+          user={user}
+        />
         {/* Main Workspace Content Area */}
         <main className="flex-1 overflow-y-auto p-8">{children}</main>
       </SidebarProvider>

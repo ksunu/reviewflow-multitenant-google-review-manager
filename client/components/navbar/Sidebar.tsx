@@ -21,7 +21,11 @@ import {
   ChevronRight,
   MapPin,
   MessageCircleCode,
+  ArrowLeft,
+  Building2,
 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import Link from 'next/link'
 
 const itemIcon = {
   overview: Home,
@@ -31,9 +35,11 @@ const itemIcon = {
 
 export default function AppSidebar({
   workspaceId,
+  workspace,
   user,
 }: {
   workspaceId: string
+  workspace: any
   user: any
 }) {
   const items = [
@@ -60,7 +66,21 @@ export default function AppSidebar({
     >
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Workspace</SidebarGroupLabel>
+          <SidebarGroupLabel>
+            <div className="flex items-center gap-3">
+              <Button asChild variant="ghost" size="icon" className="h-8 w-8">
+                <Link href="/dashboard" title="All Workspaces">
+                  <ArrowLeft className="w-4 h-4" />
+                </Link>
+              </Button>
+              <div className="flex items-center gap-2">
+                <Building2 className="w-4 h-4 text-primary" />
+                <span className="font-semibold text-sm">
+                  {workspace?.name || 'Workspace'}
+                </span>
+              </div>
+            </div>
+          </SidebarGroupLabel>
 
           <SidebarGroupContent>
             <SidebarMenu>

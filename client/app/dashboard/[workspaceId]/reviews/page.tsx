@@ -32,6 +32,8 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { generateAndSaveAIResponse } from './actions'
+import { EmptyState } from '@/components/ui/empty-state'
+import { toast } from 'sonner'
 
 export default function WorkspaceReviewsPage() {
   const params = useParams()
@@ -91,10 +93,14 @@ export default function WorkspaceReviewsPage() {
 
   const handleGenerateAI = async (reviewId: string) => {
     setGeneratingId(reviewId)
+
+    // Optional: show a loading toast if it takes a moment with local Ollama
+    const toastId = toast.loading('Generating AI response with Ollama...')
+
     try {
       const result = await generateAndSaveAIResponse(reviewId, workspaceId)
+
       if (result.success) {
-        // Refresh local reviews state
         setReviews(
           reviews.map((r) =>
             r.id === reviewId
@@ -102,12 +108,17 @@ export default function WorkspaceReviewsPage() {
               : r,
           ),
         )
+        toast.success('AI response generated and saved successfully!', {
+          id: toastId,
+        })
       } else {
-        alert('Error: ' + result.error)
+        toast.error('Failed to generate response: ' + result.error, {
+          id: toastId,
+        })
       }
     } catch (err) {
       console.error(err)
-      alert('Failed to generate response.')
+      toast.error('An unexpected error occurred.', { id: toastId })
     } finally {
       setGeneratingId(null)
     }
@@ -196,18 +207,24 @@ export default function WorkspaceReviewsPage() {
       </div>
 
       {reviews.length === 0 ? (
-        <Card className="border-dashed">
-          <CardHeader className="text-center py-12">
-            <div className="mx-auto bg-primary/10 p-3 rounded-full w-fit mb-3 text-primary">
-              <MessageSquare className="w-8 h-8" />
-            </div>
-            <CardTitle className="text-xl">No reviews found</CardTitle>
-            <CardDescription className="max-w-sm mx-auto mt-1">
-              No customer reviews match your current filters or have been synced
-              yet.
-            </CardDescription>
-          </CardHeader>
-        </Card>
+        <EmptyState
+          icon={<MessageSquare className="w-6 h-6" />}
+          title="No customer reviews found"
+          description={
+            selectedLocation !== 'all' || selectedStatus !== 'all'
+              ? 'No reviews match your selected filter criteria. Try resetting your filters.'
+              : 'No feedback has been synced for your workspace locations yet.'
+          }
+          actionLabel={
+            selectedLocation !== 'all' || selectedStatus !== 'all'
+              ? 'Clear Filters'
+              : undefined
+          }
+          onAction={() => {
+            setSelectedLocation('all')
+            setSelectedStatus('all')
+          }}
+        />
       ) : (
         <div className="space-y-4">
           {reviews.map((review) => (

@@ -16,6 +16,7 @@ import {
 import { APIProvider } from '@vis.gl/react-google-maps'
 import GoogleMaps from '@/components/map/GoogleMaps'
 import AddLocationModal from '@/app/dashboard/[workspaceId]/locations/_components/add-location-modal'
+import { EmptyState } from '@/components/ui/empty-state'
 
 export default function WorkspaceLocationsPage() {
   const params = useParams()
@@ -65,22 +66,10 @@ export default function WorkspaceLocationsPage() {
     )
   }
 
-  console.log('test', locations)
   return (
-    <APIProvider apiKey={process.env.GOOGLE_MAPS_API_KEY || ''}>
+    <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}>
       <div className="space-y-8 max-w-6xl mx-auto">
         <div className="space-y-2">
-          <Button
-            asChild
-            variant="ghost"
-            size="sm"
-            className="-ml-2 text-muted-foreground hover:text-foreground"
-          >
-            <Link href={`/dashboard/${workspaceId}`}>
-              <ArrowLeft className="w-4 h-4 mr-2" /> Back to{' '}
-              {workspace?.name || 'Workspace'} Dashboard
-            </Link>
-          </Button>
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <h1 className="text-3xl font-bold tracking-tight">Locations</h1>
@@ -101,23 +90,13 @@ export default function WorkspaceLocationsPage() {
 
         {/* Locations Grid */}
         {locations.length === 0 ? (
-          <Card className="border-dashed">
-            <CardHeader className="text-center py-12">
-              <div className="mx-auto bg-primary/10 p-3 rounded-full w-fit mb-3 text-primary">
-                <Store className="w-8 h-8" />
-              </div>
-              <CardTitle className="text-xl">No locations found</CardTitle>
-              <CardDescription className="max-w-sm mx-auto mt-1">
-                You haven&apos;t added any business locations to this workspace
-                yet. Click below to add your first location.
-              </CardDescription>
-              <div className="mt-6">
-                <Button onClick={() => setIsOpen(true)}>
-                  <Plus className="w-4 h-4 mr-2" /> Add Location
-                </Button>
-              </div>
-            </CardHeader>
-          </Card>
+          <EmptyState
+            icon={<MapPin className="w-6 h-6" />}
+            title="No store locations yet"
+            description="Add your first business address using Google Places autocomplete to start tracking reviews on the interactive map."
+            actionLabel="Add First Location"
+            onAction={() => setIsOpen(true)} // or point to your open modal function
+          />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {locations.map((loc) => (
@@ -147,8 +126,8 @@ export default function WorkspaceLocationsPage() {
             ))}
           </div>
         )}
+        <GoogleMaps locations={locations} />
       </div>
-      <GoogleMaps locations={locations} />
     </APIProvider>
   )
 }

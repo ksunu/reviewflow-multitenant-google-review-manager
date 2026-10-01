@@ -70,7 +70,7 @@ export default function GoogleMaps({ locations = [] }: GoogleMapsProps) {
       <Map
         defaultCenter={defaultCenter}
         defaultZoom={12}
-        mapId={process.env.NEXT_PUBLIC_GOOGLE_MAP_ID || 'DEMO_MAP_ID'}
+        mapId={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || 'DEMO_MAP_ID'}
         gestureHandling={'greedy'}
         disableFullscreenControl={false}
       >
