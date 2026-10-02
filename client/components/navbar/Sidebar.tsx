@@ -23,6 +23,7 @@ import {
   MessageCircleCode,
   ArrowLeft,
   Building2,
+  UserGroup,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
@@ -57,6 +58,11 @@ export default function AppSidebar({
       title: 'Reviews',
       icon: MessageCircleCode,
       onClick: () => redirect(`/dashboard/${workspaceId}/reviews`),
+    },
+    {
+      title: 'Team',
+      icon: UserGroup,
+      onClick: () => redirect(`/dashboard/${workspaceId}/team`),
     },
   ]
   return (

@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { useMapsLibrary } from '@vis.gl/react-google-maps'
 import {
   Dialog,
   DialogContent,
@@ -14,6 +15,7 @@ import { Button, buttonVariants } from '@/components/ui/button'
 import { MapPin, Plus, Loader2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { extractPrimaryBusinessType } from '@/lib/helpers/place-helpers'
 
 export default function AddLocationModal({
   isOpen,
@@ -37,42 +39,61 @@ export default function AddLocationModal({
   const [googlePlaceId, setGooglePlaceId] = useState('')
   const [latitude, setLatitude] = useState<number | null>(null)
   const [longitude, setLongitude] = useState<number | null>(null)
+  const [businessType, setBusinessType] = useState('local business')
 
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const addressInputRef = useRef<HTMLInputElement>(null)
+  // Load the places library using vis.gl hook
+  const placesLibrary = useMapsLibrary('places')
+  const [autocomplete, setAutocomplete] =
+    useState<google.maps.places.Autocomplete | null>(null)
 
-  // Initialize Google Places Autocomplete with geometry
+  // Use a callback ref so Autocomplete attaches the exact moment the input mounts in the DOM portal
+  const inputRef = useCallback(
+    (node: HTMLInputElement | null) => {
+      if (!node || !placesLibrary) return
+
+      const ak = new placesLibrary.Autocomplete(node, {
+        fields: ['place_id', 'formatted_address', 'name', 'geometry', 'types'],
+      })
+
+      setAutocomplete(ak)
+    },
+    [placesLibrary],
+  )
+
   useEffect(() => {
-    if (!isOpen) return
+    if (!autocomplete) return
 
-    const timer = setTimeout(() => {
-      if (window.google && addressInputRef.current) {
-        const autocomplete = new window.google.maps.places.Autocomplete(
-          addressInputRef.current,
-          {
-            fields: ['place_id', 'formatted_address', 'name', 'geometry'],
-          },
-        )
+    const listener = autocomplete.addListener('place_changed', () => {
+      const place = autocomplete.getPlace()
 
-        autocomplete.addListener('place_changed', () => {
-          const place = autocomplete.getPlace()
-
-          if (place.name) setName(place.name) // Automatically set official Google name
-          if (place.formatted_address) setAddress(place.formatted_address)
-          if (place.place_id) setGooglePlaceId(place.place_id)
-
-          if (place.geometry?.location) {
-            setLatitude(place.geometry.location.lat())
-            setLongitude(place.geometry.location.lng())
-          }
-        })
+      if (place.formatted_address) {
+        setAddress(place.formatted_address)
       }
-    }, 100)
+      if (place.name && !name) {
+        setName(place.name)
+      }
+      if (place.place_id) {
+        setGooglePlaceId(place.place_id)
+      }
+      if (place.geometry?.location) {
+        setLatitude(place.geometry.location.lat())
+        setLongitude(place.geometry.location.lng())
+      }
+      if (place.types) {
+        const primaryType = extractPrimaryBusinessType(place.types)
+        setBusinessType(primaryType)
+      }
+    })
 
-    return () => clearTimeout(timer)
-  }, [isOpen])
+    return () => {
+      if (window.google?.maps?.event) {
+        window.google.maps.event.removeListener(listener)
+      }
+    }
+  }, [autocomplete, name])
 
   const handleCreateLocation = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -91,6 +112,7 @@ export default function AddLocationModal({
           google_place_id: googlePlaceId || null,
           latitude: latitude || null,
           longitude: longitude || null,
+          business_type: businessType,
         })
         .select()
         .single()
@@ -103,6 +125,7 @@ export default function AddLocationModal({
       setGooglePlaceId('')
       setLatitude(null)
       setLongitude(null)
+      setBusinessType('local business')
       setIsOpen(false)
       router.refresh()
     } catch (err: any) {
@@ -112,6 +135,7 @@ export default function AddLocationModal({
       setSubmitting(false)
     }
   }
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger className={buttonVariants({ variant: 'default' })}>
@@ -146,7 +170,7 @@ export default function AddLocationModal({
             <div className="space-y-2">
               <Label htmlFor="address">Google Maps Search / Address</Label>
               <Input
-                ref={addressInputRef}
+                ref={inputRef}
                 id="address"
                 placeholder="Start typing your business address..."
                 value={address}
@@ -154,7 +178,7 @@ export default function AddLocationModal({
               />
               {googlePlaceId && (
                 <p className="text-xs text-green-600 font-medium">
-                  ✓ Google Place ID linked successfully
+                  ✓ Google Place ID & {businessType} linked successfully
                 </p>
               )}
             </div>

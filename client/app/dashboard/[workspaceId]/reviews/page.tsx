@@ -13,6 +13,7 @@ import {
   Clock,
   AlertCircle,
   Store,
+  RefreshCw,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -34,6 +35,7 @@ import {
 import { generateAndSaveAIResponse } from './actions'
 import { EmptyState } from '@/components/ui/empty-state'
 import { toast } from 'sonner'
+import { AIReplyDialog } from '@/components/ai/ai-reply-dialog'
 
 export default function WorkspaceReviewsPage() {
   const params = useParams()
@@ -49,6 +51,32 @@ export default function WorkspaceReviewsPage() {
   const [selectedLocation, setSelectedLocation] = useState<string>('all')
   const [selectedStatus, setSelectedStatus] = useState<string>('all')
 
+  //sync
+  const [syncing, setSyncing] = useState(false)
+  const handleSyncReviews = async () => {
+    setSyncing(true)
+    const toastId = toast.loading(
+      'Syncing latest reviews from Google Places...',
+    )
+
+    try {
+      const response = await fetch(`/api/workspaces/${workspaceId}/sync`, {
+        method: 'POST',
+      })
+      const data = await response.json()
+
+      if (!response.ok) throw new Error(data.error || 'Sync failed')
+
+      toast.success('Successfully synchronized 1 new review!', { id: toastId })
+      // Refresh your reviews state or router
+      window.location.reload()
+    } catch (err: any) {
+      console.error(err)
+      toast.error(err.message || 'Failed to sync reviews.', { id: toastId })
+    } finally {
+      setSyncing(false)
+    }
+  }
   const loadReviewsData = async () => {
     try {
       const { data: locs } = await supabase
@@ -176,6 +204,16 @@ export default function WorkspaceReviewsPage() {
         </div>
 
         <div className="flex items-center gap-3 flex-wrap">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleSyncReviews}
+            disabled={syncing}
+            className="gap-2"
+          >
+            <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
+            {syncing ? 'Syncing...' : 'Sync Reviews'}
+          </Button>
           <Select value={selectedLocation} onValueChange={setSelectedLocation}>
             <SelectTrigger className="w-[180px]">
               <Store className="w-4 h-4 mr-2 text-muted-foreground" />
@@ -278,27 +316,17 @@ export default function WorkspaceReviewsPage() {
                 <span className="text-muted-foreground font-mono">
                   Source: Google Maps
                 </span>
-                <Button
-                  size="sm"
-                  variant={review.ai_response ? 'outline' : 'default'}
-                  className="gap-1.5"
-                  disabled={generatingId === review.id}
-                  onClick={() => handleGenerateAI(review.id)}
-                >
-                  {generatingId === review.id ? (
-                    <>
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />{' '}
-                      Generating...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-3.5 h-3.5" />{' '}
-                      {review.ai_response
-                        ? 'Regenerate Response'
-                        : 'Generate AI Response'}
-                    </>
-                  )}
-                </Button>
+
+                {/* Context-Aware AI Reply Dialog Button */}
+                <AIReplyDialog
+                  workspaceId={workspaceId}
+                  review={{
+                    id: review.id,
+                    rating: review.rating,
+                    comment: review.comment,
+                    author_name: review.author_name,
+                  }}
+                />
               </CardFooter>
             </Card>
           ))}

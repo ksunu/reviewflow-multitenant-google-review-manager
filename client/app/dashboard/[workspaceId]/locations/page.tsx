@@ -3,9 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import Link from 'next/link'
 import { MapPin, Plus, ArrowLeft, Store, Loader2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import {
   Card,
   CardContent,
