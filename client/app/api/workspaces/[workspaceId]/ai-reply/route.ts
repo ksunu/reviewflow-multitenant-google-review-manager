@@ -7,7 +7,7 @@ export async function POST(
 ) {
   try {
     const { workspaceId } = await params
-    const { reviewId, rating, comment, internalContext, tone } =
+    const { reviewId, rating, review_text, internalContext, tone } =
       await request.json()
     const supabase = await createClient()
 
@@ -58,7 +58,7 @@ DO NOT include introductory filler like "Here is a response" or quotation marks.
 Review Details:
 - Rating: ${rating} / 5 stars
 - Customer Name: ${customerName}
-- Customer Review: "${comment}"
+- Customer Review: "${review_text}"
 - Internal Business Context / Facts: "${internalContext || 'None provided. Rely on standard customer service best practices.'}"
 - Desired Tone: ${toneInstruction}
 

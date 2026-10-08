@@ -15,11 +15,14 @@ import { APIProvider } from '@vis.gl/react-google-maps'
 import GoogleMaps from '@/components/map/GoogleMaps'
 import AddLocationModal from '@/app/dashboard/[workspaceId]/locations/_components/add-location-modal'
 import { EmptyState } from '@/components/ui/empty-state'
+import { syncLocationReviews } from '@/app/actions/syncReviews'
+import { useRouter } from 'next/navigation'
 
 export default function WorkspaceLocationsPage() {
   const params = useParams()
   const workspaceId = params.workspaceId as string
   const supabase = createClient()
+  const router = useRouter()
 
   const [workspace, setWorkspace] = useState<any>(null)
   const [locations, setLocations] = useState<any[]>([])
@@ -28,6 +31,20 @@ export default function WorkspaceLocationsPage() {
   // Modal & Form State
   const [isOpen, setIsOpen] = useState(false)
 
+  // sync reviews
+  const [syncing, setSyncing] = useState(false)
+  const handleSync = async (location: any) => {
+    setSyncing(true)
+    const res = await syncLocationReviews(location.id, workspaceId)
+    setSyncing(false)
+
+    if (res.success) {
+      // Optional: toast notification or soft refresh
+      router.refresh()
+    } else {
+      alert(`Sync failed: ${res.error}`)
+    }
+  }
   // Fetch data client-side
   useEffect(() => {
     async function loadData() {
@@ -117,7 +134,22 @@ export default function WorkspaceLocationsPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="pt-2 border-t bg-muted/10 text-xs text-muted-foreground flex justify-between items-center">
-                  <span className="font-mono">ID: {loc.id.slice(0, 8)}...</span>
+                  <div className="pt-2 flex items-center justify-between border-t border-gray-100">
+                    <button
+                      onClick={() => handleSync(loc)}
+                      disabled={syncing || !loc.google_place_id}
+                      className="px-3 py-1.5 text-xs font-semibold bg-gray-900 text-white rounded-lg hover:bg-gray-800 disabled:opacity-50 cursor-pointer transition-colors"
+                    >
+                      {syncing ? 'Syncing Reviews...' : '🔄 Sync Reviews'}
+                    </button>
+
+                    <a
+                      href={`/dashboard/${workspaceId}/reviews?locationId=${loc.id}`}
+                      className="text-xs font-medium text-indigo-600 hover:text-indigo-800"
+                    >
+                      View Reviews →
+                    </a>
+                  </div>
                   <span className="font-medium text-foreground">0 reviews</span>
                 </CardContent>
               </Card>

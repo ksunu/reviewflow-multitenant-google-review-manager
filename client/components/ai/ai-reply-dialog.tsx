@@ -29,7 +29,7 @@ interface AIReplyDialogProps {
   review: {
     id: string
     rating: number
-    comment: string
+    review_text: string
     author_name: string
   }
   onReplySaved?: () => void
@@ -59,7 +59,7 @@ export function AIReplyDialog({
         body: JSON.stringify({
           reviewId: review.id,
           rating: review.rating,
-          comment: review.comment,
+          review_text: review.review_text,
           internalContext,
           tone,
         }),
@@ -149,7 +149,9 @@ export function AIReplyDialog({
             <div className="font-semibold text-foreground">
               Review ({review.rating} Stars):
             </div>
-            <p className="text-muted-foreground italic">"{review.comment}"</p>
+            <p className="text-muted-foreground italic">
+              "{review.review_text}"
+            </p>
           </div>
 
           {/* Tone Selector */}

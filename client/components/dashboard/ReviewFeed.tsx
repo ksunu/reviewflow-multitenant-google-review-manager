@@ -8,7 +8,7 @@ interface Review {
   platform: 'google' | 'yelp'
   authorName: string
   rating: number
-  comment: string
+  review_text: string
   sentiment: 'positive' | 'neutral' | 'negative'
   intentCategory: string
   isFlagged: boolean
@@ -23,7 +23,7 @@ const MOCK_REVIEWS: Review[] = [
     platform: 'google',
     authorName: 'Minho Park',
     rating: 1,
-    comment:
+    review_text:
       'Waited 45 minutes for a table even though we booked in advance. Terrible service.',
     sentiment: 'negative',
     intentCategory: 'service_speed',
@@ -38,7 +38,7 @@ const MOCK_REVIEWS: Review[] = [
     platform: 'yelp',
     authorName: 'Sarah Jenkins',
     rating: 5,
-    comment:
+    review_text:
       'Best workout environment in Seoul! Instructors are super professional and facilities are pristine.',
     sentiment: 'positive',
     intentCategory: 'staff_quality',
@@ -119,7 +119,7 @@ export function ReviewFeed() {
             </div>
 
             {/* Review Comment */}
-            <p className="text-gray-700 text-sm mb-4">{review.comment}</p>
+            <p className="text-gray-700 text-sm mb-4">{review.review_text}</p>
 
             {/* Badges / Tags */}
             <div className="flex items-center gap-2 mb-4">

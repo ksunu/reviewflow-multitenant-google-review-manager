@@ -39,8 +39,6 @@ export function PublicPlaceSearch({ tenantId }: { tenantId: string }) {
       brand_voice_profile: 'Professional, polite, and empathetic',
     }
 
-    console.log('Sending payload to locations:', payload) // Check browser console to verify
-
     const { error } = await supabase.from('locations').insert(payload)
 
     if (error) {

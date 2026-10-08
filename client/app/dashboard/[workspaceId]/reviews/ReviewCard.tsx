@@ -8,7 +8,7 @@ interface ReviewItemProps {
     id: string
     author_name: string
     rating: number
-    comment: string
+    review_text: string
     review_date: string
     review_responses?: Array<{
       id: string
@@ -64,7 +64,7 @@ export function ReviewCard({ review }: ReviewItemProps) {
       </div>
 
       <p className="text-sm text-gray-800 bg-gray-50 p-3 rounded">
-        {review.comment}
+        {review.review_text}
       </p>
 
       {/* AI Draft & Edit Section */}

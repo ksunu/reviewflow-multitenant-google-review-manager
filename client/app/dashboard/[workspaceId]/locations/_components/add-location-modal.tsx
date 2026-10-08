@@ -16,6 +16,7 @@ import { MapPin, Plus, Loader2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { extractPrimaryBusinessType } from '@/lib/helpers/place-helpers'
+import { addLocationAction } from '@/app/actions/locations'
 
 export default function AddLocationModal({
   isOpen,
@@ -103,23 +104,23 @@ export default function AddLocationModal({
     setError(null)
 
     try {
-      const { data, error: insertError } = await supabase
-        .from('locations')
-        .insert({
-          workspace_id: workspaceId,
-          name: name.trim(),
-          address: address.trim() || null,
-          google_place_id: googlePlaceId || null,
-          latitude: latitude || null,
-          longitude: longitude || null,
-          business_type: businessType,
-        })
-        .select()
-        .single()
+      // Call the Server Action instead of direct client insert
+      const result = await addLocationAction({
+        workspaceId: workspaceId,
+        name: name.trim(),
+        placeId: googlePlaceId || '',
+        businessType: businessType || 'local business',
+        address: address.trim(),
+        latitude: latitude || 0,
+        longitude: longitude || 0,
+      })
 
-      if (insertError) throw insertError
+      if (!result.success) {
+        throw new Error(result.error)
+      }
 
-      setLocations([data, ...locations])
+      // Reset form fields on success
+      setLocations([result, ...locations])
       setName('')
       setAddress('')
       setGooglePlaceId('')
@@ -127,6 +128,7 @@ export default function AddLocationModal({
       setLongitude(null)
       setBusinessType('local business')
       setIsOpen(false)
+
       router.refresh()
     } catch (err: any) {
       console.error('Error creating location:', err)

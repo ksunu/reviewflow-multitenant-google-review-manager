@@ -36,6 +36,7 @@ import { generateAndSaveAIResponse } from './actions'
 import { EmptyState } from '@/components/ui/empty-state'
 import { toast } from 'sonner'
 import { AIReplyDialog } from '@/components/ai/ai-reply-dialog'
+import { syncLocationReviews } from '@/app/actions/syncReviews'
 
 export default function WorkspaceReviewsPage() {
   const params = useParams()
@@ -53,29 +54,42 @@ export default function WorkspaceReviewsPage() {
 
   //sync
   const [syncing, setSyncing] = useState(false)
+
   const handleSyncReviews = async () => {
     setSyncing(true)
-    const toastId = toast.loading(
-      'Syncing latest reviews from Google Places...',
-    )
+    const result = await syncGoogleReviewsAction(locationId)
 
-    try {
-      const response = await fetch(`/api/workspaces/${workspaceId}/sync`, {
-        method: 'POST',
-      })
-      const data = await response.json()
-
-      if (!response.ok) throw new Error(data.error || 'Sync failed')
-
-      toast.success('Successfully synchronized 1 new review!', { id: toastId })
-      // Refresh your reviews state or router
-      window.location.reload()
-    } catch (err: any) {
-      console.error(err)
-      toast.error(err.message || 'Failed to sync reviews.', { id: toastId })
-    } finally {
-      setSyncing(false)
+    if (!result.success) {
+      alert(`Sync failed: ${result.error}`)
+    } else {
+      alert(`Successfully synced reviews!`)
+      router.refresh()
     }
+    setSyncing(false)
+
+    // fake review sync for testing
+    // setSyncing(true)
+    // const toastId = toast.loading(
+    //   'Syncing latest reviews from Google Places...',
+    // )
+
+    // try {
+    //   const response = await fetch(`/api/workspaces/${workspaceId}/sync`, {
+    //     method: 'POST',
+    //   })
+    //   const data = await response.json()
+
+    //   if (!response.ok) throw new Error(data.error || 'Sync failed')
+
+    //   toast.success('Successfully synchronized 1 new review!', { id: toastId })
+    //   // Refresh your reviews state or router
+    //   window.location.reload()
+    // } catch (err: any) {
+    //   console.error(err)
+    //   toast.error(err.message || 'Failed to sync reviews.', { id: toastId })
+    // } finally {
+    //   setSyncing(false)
+    // }
   }
   const loadReviewsData = async () => {
     try {
@@ -298,7 +312,8 @@ export default function WorkspaceReviewsPage() {
               </CardHeader>
               <CardContent className="space-y-4 pb-4">
                 <p className="text-sm text-foreground/90 bg-muted/30 p-3 rounded-lg border">
-                  &ldquo;{review.comment || 'No comment text provided.'}&rdquo;
+                  &ldquo;{review.review_text || 'No review_text text provided.'}
+                  &rdquo;
                 </p>
 
                 {review.ai_response && (
@@ -323,7 +338,7 @@ export default function WorkspaceReviewsPage() {
                   review={{
                     id: review.id,
                     rating: review.rating,
-                    comment: review.comment,
+                    review_text: review.review_text,
                     author_name: review.author_name,
                   }}
                 />

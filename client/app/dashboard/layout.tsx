@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { LanguageSwitcher } from '@/components/language/LanguageSwitcher'
 import { getCurrentUser } from '@/lib/supabase/user'
+import DashboardHeader from '@/components/navbar/DashboardHeader'
 
 export default async function DashboardLayout({
   children,
@@ -25,6 +26,7 @@ export default async function DashboardLayout({
             <span className="w-3 h-3 rounded-full bg-purple-600"></span>
             Review Manager
           </Link>
+          <DashboardHeader />
           <LanguageSwitcher />
         </div>
       </header>

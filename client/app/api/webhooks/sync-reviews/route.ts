@@ -19,12 +19,12 @@ export async function POST(request: Request) {
       platform,
       authorName,
       rating,
-      comment,
+      review_text,
       reviewDate,
     } = body
 
     // Validation check
-    if (!locationId || !externalReviewId || !comment) {
+    if (!locationId || !externalReviewId || !review_text) {
       return NextResponse.json(
         { error: 'Missing required review fields' },
         { status: 400 },
@@ -63,7 +63,7 @@ export async function POST(request: Request) {
       model: ollamaLocal('llama3'),
       schema: reviewAnalysisSchema,
       system: `You are an expert customer experience agent. Brand voice: "${brandVoice}"`,
-      prompt: `Analyze this review: - Rating: ${rating}/5 - Comment: "${comment}"`,
+      prompt: `Analyze this review: - Rating: ${rating}/5 - Comment: "${review_text}"`,
     })
 
     // 4. Insert the review into Supabase
@@ -75,7 +75,7 @@ export async function POST(request: Request) {
         external_review_id: externalReviewId,
         author_name: authorName,
         rating: rating,
-        comment: comment,
+        review_text: review_text,
         sentiment: analysis.sentiment,
         intent_category: analysis.intentCategory,
         is_flagged_policy_violation: analysis.isFlaggedPolicyViolation,

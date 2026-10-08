@@ -30,7 +30,7 @@ export async function generateAndSaveAIResponse(
 
   // 2. Generate response via Ollama/AI
   const aiResult = await generateReviewResponse(
-    review.comment || 'Great experience!',
+    review.review_text || 'Great experience!',
     review.rating,
     businessName,
   )

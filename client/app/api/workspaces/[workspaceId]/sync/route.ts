@@ -91,7 +91,7 @@ export async function POST(
         location_id: randomLocation.id,
         author_name: randomReviewer.name,
         rating: randomContent.rating,
-        comment: randomContent.text,
+        review_text: randomContent.text,
         status: 'pending',
         created_at: new Date().toISOString(),
       })
