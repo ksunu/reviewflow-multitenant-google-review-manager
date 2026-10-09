@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import {
   MessageSquare,
@@ -24,7 +24,9 @@ import { EmptyState } from '@/components/ui/empty-state'
 
 export default function WorkspaceOverviewPage() {
   const params = useParams()
+  const searchParams = useSearchParams()
   const workspaceId = params.workspaceId as string
+  const locationId = searchParams.get('locationId')
   const supabase = createClient()
 
   const [loading, setLoading] = useState(true)
@@ -35,22 +37,42 @@ export default function WorkspaceOverviewPage() {
     resolvedReviews: 0,
     ratingCounts: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 } as Record<number, number>,
     totalLocations: 0,
+    selectedLocationName: '',
   })
 
   useEffect(() => {
     async function loadDashboardData() {
       try {
-        // 1. Fetch locations count
+        setLoading(true)
+
+        // 1. Fetch total locations count for the workspace
         const { count: locCount } = await supabase
           .from('locations')
           .select('*', { count: 'exact', head: true })
           .eq('workspace_id', workspaceId)
 
-        // 2. Fetch all reviews for this workspace to compute metrics
-        const { data: reviews, error } = await supabase
+        // 2. If a specific location is selected, fetch its name for context
+        let locationName = ''
+        if (locationId && locationId !== 'all') {
+          const { data: locData } = await supabase
+            .from('locations')
+            .select('name')
+            .eq('id', locationId)
+            .single()
+          if (locData) locationName = locData.name
+        }
+
+        // 3. Build reviews query with optional location filter
+        let reviewQuery = supabase
           .from('reviews')
           .select('rating, status')
           .eq('workspace_id', workspaceId)
+
+        if (locationId && locationId !== 'all') {
+          reviewQuery = reviewQuery.eq('location_id', locationId)
+        }
+
+        const { data: reviews, error } = await reviewQuery
 
         if (error) throw error
 
@@ -87,6 +109,7 @@ export default function WorkspaceOverviewPage() {
           resolvedReviews,
           ratingCounts,
           totalLocations: locCount || 0,
+          selectedLocationName: locationName,
         })
       } catch (err) {
         console.error('Error loading analytics:', err)
@@ -96,7 +119,7 @@ export default function WorkspaceOverviewPage() {
     }
 
     loadDashboardData()
-  }, [workspaceId, supabase])
+  }, [workspaceId, locationId, supabase])
 
   if (loading) {
     return (
@@ -106,6 +129,8 @@ export default function WorkspaceOverviewPage() {
     )
   }
 
+  const isAllLocations = !locationId || locationId === 'all'
+
   return (
     <div className="space-y-8 max-w-6xl mx-auto">
       {/* Header */}
@@ -114,8 +139,9 @@ export default function WorkspaceOverviewPage() {
           Workspace Overview
         </h1>
         <p className="text-muted-foreground text-sm">
-          Monitor your review sentiment, location performance, and response
-          metrics.
+          {isAllLocations
+            ? 'Monitor aggregated review sentiment and performance across all active storefronts.'
+            : `Showing performance metrics for ${stats.selectedLocationName || 'selected location'}.`}
         </p>
       </div>
 
@@ -131,7 +157,9 @@ export default function WorkspaceOverviewPage() {
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalReviews}</div>
             <p className="text-xs text-muted-foreground mt-1">
-              Across all synced channels
+              {isAllLocations
+                ? 'Across all synced channels'
+                : 'For selected store'}
             </p>
           </CardContent>
         </Card>

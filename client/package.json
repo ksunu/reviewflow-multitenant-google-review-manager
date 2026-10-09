@@ -19,6 +19,7 @@
     "ai": "^7.0.113",
     "class-variance-authority": "^0.7.1",
     "cn": "^0.4.0",
+    "embla-carousel-react": "^8.6.0",
     "i18next": "^26.4.2",
     "i18next-browser-languagedetector": "^8.2.1",
     "i18next-resources-to-backend": "^1.2.3",

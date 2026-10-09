@@ -11,6 +11,13 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from '@/components/ui/carousel'
 import { APIProvider } from '@vis.gl/react-google-maps'
 import GoogleMaps from '@/components/map/GoogleMaps'
 import AddLocationModal from '@/app/dashboard/[workspaceId]/locations/_components/add-location-modal'
@@ -31,20 +38,21 @@ export default function WorkspaceLocationsPage() {
   // Modal & Form State
   const [isOpen, setIsOpen] = useState(false)
 
-  // sync reviews
-  const [syncing, setSyncing] = useState(false)
+  // sync reviews state mapped per location ID
+  const [syncingId, setSyncingId] = useState<string | null>(null)
+
   const handleSync = async (location: any) => {
-    setSyncing(true)
+    setSyncingId(location.id)
     const res = await syncLocationReviews(location.id, workspaceId)
-    setSyncing(false)
+    setSyncingId(null)
 
     if (res.success) {
-      // Optional: toast notification or soft refresh
       router.refresh()
     } else {
       alert(`Sync failed: ${res.error}`)
     }
   }
+
   // Fetch data client-side
   useEffect(() => {
     async function loadData() {
@@ -81,6 +89,48 @@ export default function WorkspaceLocationsPage() {
     )
   }
 
+  // Reusable card markup to avoid duplication between grid and carousel views
+  const renderLocationCard = (loc: any) => {
+    const isSyncing = syncingId === loc.id
+    return (
+      <Card
+        key={loc.id}
+        className="hover:border-primary/50 transition-colors flex flex-col justify-between h-full"
+      >
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="bg-primary/10 text-primary p-2.5 rounded-lg">
+              <MapPin className="w-5 h-5" />
+            </div>
+            <span className="text-xs font-mono bg-muted px-2 py-1 rounded text-muted-foreground">
+              {loc.google_place_id ? 'Google Linked' : 'Active'}
+            </span>
+          </div>
+          <CardTitle className="text-lg mt-3 truncate">{loc.name}</CardTitle>
+          <CardDescription className="text-xs truncate">
+            {loc.address || 'No address specified'}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="pt-4 border-t bg-muted/10 text-xs text-muted-foreground flex justify-between items-center">
+          <button
+            onClick={() => handleSync(loc)}
+            disabled={isSyncing || !loc.google_place_id}
+            className="px-3 py-1.5 text-xs font-semibold bg-gray-900 text-white rounded-lg hover:bg-gray-800 disabled:opacity-50 cursor-pointer transition-colors"
+          >
+            {isSyncing ? 'Syncing...' : '🔄 Sync Reviews'}
+          </button>
+
+          <a
+            href={`/dashboard/${workspaceId}/reviews?locationId=${loc.id}`}
+            className="text-xs font-medium text-indigo-600 hover:text-indigo-800"
+          >
+            View Reviews →
+          </a>
+        </CardContent>
+      </Card>
+    )
+  }
+
   return (
     <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}>
       <div className="space-y-8 max-w-6xl mx-auto">
@@ -103,59 +153,44 @@ export default function WorkspaceLocationsPage() {
           </div>
         </div>
 
-        {/* Locations Grid */}
+        {/* Dynamic Layout: Grid if <= 3 locations, Carousel if > 3 */}
         {locations.length === 0 ? (
           <EmptyState
             icon={<MapPin className="w-6 h-6" />}
             title="No store locations yet"
             description="Add your first business address using Google Places autocomplete to start tracking reviews on the interactive map."
             actionLabel="Add First Location"
-            onAction={() => setIsOpen(true)} // or point to your open modal function
+            onAction={() => setIsOpen(true)}
           />
-        ) : (
+        ) : locations.length <= 3 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {locations.map((loc) => (
-              <Card
-                key={loc.id}
-                className="hover:border-primary/50 transition-colors flex flex-col justify-between"
-              >
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div className="bg-primary/10 text-primary p-2.5 rounded-lg">
-                      <MapPin className="w-5 h-5" />
-                    </div>
-                    <span className="text-xs font-mono bg-muted px-2 py-1 rounded text-muted-foreground">
-                      {loc.google_place_id ? 'Google Linked' : 'Active'}
-                    </span>
-                  </div>
-                  <CardTitle className="text-lg mt-3">{loc.name}</CardTitle>
-                  <CardDescription className="text-xs truncate">
-                    {loc.address || 'No address specified'}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="pt-2 border-t bg-muted/10 text-xs text-muted-foreground flex justify-between items-center">
-                  <div className="pt-2 flex items-center justify-between border-t border-gray-100">
-                    <button
-                      onClick={() => handleSync(loc)}
-                      disabled={syncing || !loc.google_place_id}
-                      className="px-3 py-1.5 text-xs font-semibold bg-gray-900 text-white rounded-lg hover:bg-gray-800 disabled:opacity-50 cursor-pointer transition-colors"
-                    >
-                      {syncing ? 'Syncing Reviews...' : '🔄 Sync Reviews'}
-                    </button>
-
-                    <a
-                      href={`/dashboard/${workspaceId}/reviews?locationId=${loc.id}`}
-                      className="text-xs font-medium text-indigo-600 hover:text-indigo-800"
-                    >
-                      View Reviews →
-                    </a>
-                  </div>
-                  <span className="font-medium text-foreground">0 reviews</span>
-                </CardContent>
-              </Card>
-            ))}
+            {locations.map((loc) => renderLocationCard(loc))}
+          </div>
+        ) : (
+          <div className="px-6 md:px-12">
+            <Carousel
+              opts={{
+                align: 'start',
+                loop: false,
+              }}
+              className="w-full"
+            >
+              <CarouselContent className="-ml-4">
+                {locations.map((loc) => (
+                  <CarouselItem
+                    key={loc.id}
+                    className="pl-4 md:basis-1/2 lg:basis-1/3"
+                  >
+                    {renderLocationCard(loc)}
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious />
+              <CarouselNext />
+            </Carousel>
           </div>
         )}
+
         <GoogleMaps locations={locations} />
       </div>
     </APIProvider>
