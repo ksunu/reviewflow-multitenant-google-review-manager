@@ -1,5 +1,7 @@
+'use client'
+
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { useMapsLibrary } from '@vis.gl/react-google-maps'
+import { useMapsLibrary, Map, Marker } from '@vis.gl/react-google-maps'
 import {
   Dialog,
   DialogContent,
@@ -12,7 +14,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button, buttonVariants } from '@/components/ui/button'
-import { MapPin, Plus, Loader2 } from 'lucide-react'
+import { MapPin, Plus, Loader2, AlertCircle } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { extractPrimaryBusinessType } from '@/lib/helpers/place-helpers'
@@ -32,7 +34,6 @@ export default function AddLocationModal({
   setLocations: (locations: any[]) => void
 }) {
   const router = useRouter()
-  const supabase = createClient()
 
   // Modal & Form State
   const [name, setName] = useState('')
@@ -70,19 +71,27 @@ export default function AddLocationModal({
     const listener = autocomplete.addListener('place_changed', () => {
       const place = autocomplete.getPlace()
 
+      if (!place.place_id || !place.geometry?.location) {
+        setError(
+          'Please select a valid location from the Google suggestion dropdown.',
+        )
+        return
+      }
+
+      setError(null)
       if (place.formatted_address) {
         setAddress(place.formatted_address)
       }
       if (place.name && !name) {
         setName(place.name)
       }
-      if (place.place_id) {
-        setGooglePlaceId(place.place_id)
-      }
-      if (place.geometry?.location) {
-        setLatitude(place.geometry.location.lat())
-        setLongitude(place.geometry.location.lng())
-      }
+      setGooglePlaceId(place.place_id)
+
+      const lat = place.geometry.location.lat()
+      const lng = place.geometry.location.lng()
+      setLatitude(lat)
+      setLongitude(lng)
+
       if (place.types) {
         const primaryType = extractPrimaryBusinessType(place.types)
         setBusinessType(primaryType)
@@ -98,21 +107,42 @@ export default function AddLocationModal({
 
   const handleCreateLocation = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!name.trim()) return
-
-    setSubmitting(true)
     setError(null)
 
+    // 1. Validate Google Place selection
+    if (!googlePlaceId || latitude === null || longitude === null) {
+      setError(
+        'Please choose a valid address from the Google Maps dropdown suggestions.',
+      )
+      return
+    }
+
+    // 2. Check for duplicity against existing workspace locations
+    const isDuplicate = locations.some(
+      (loc) => loc.google_place_id === googlePlaceId,
+    )
+
+    if (isDuplicate) {
+      setError('This location has already been added to this workspace.')
+      return
+    }
+
+    if (!name.trim()) {
+      setError('Please provide a location name or branch.')
+      return
+    }
+
+    setSubmitting(true)
+
     try {
-      // Call the Server Action instead of direct client insert
       const result = await addLocationAction({
         workspaceId: workspaceId,
         name: name.trim(),
-        placeId: googlePlaceId || '',
+        placeId: googlePlaceId,
         businessType: businessType || 'local business',
         address: address.trim(),
-        latitude: latitude || 0,
-        longitude: longitude || 0,
+        latitude: latitude,
+        longitude: longitude,
       })
 
       if (!result.success) {
@@ -143,7 +173,7 @@ export default function AddLocationModal({
       <DialogTrigger className={buttonVariants({ variant: 'default' })}>
         <Plus className="w-4 h-4 mr-2" /> Add Location
       </DialogTrigger>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-xl">
         <form onSubmit={handleCreateLocation}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -153,22 +183,15 @@ export default function AddLocationModal({
               Search your business address to pin it precisely on the map.
             </DialogDescription>
           </DialogHeader>
+
           <div className="space-y-4 py-4">
             {error && (
-              <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md">
-                {error}
+              <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{error}</span>
               </div>
             )}
-            <div className="space-y-2">
-              <Label htmlFor="name">Location Name / Branch</Label>
-              <Input
-                id="name"
-                placeholder="e.g. Downtown Flagship Store"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-              />
-            </div>
+
             <div className="space-y-2">
               <Label htmlFor="address">Google Maps Search / Address</Label>
               <Input
@@ -180,11 +203,52 @@ export default function AddLocationModal({
               />
               {googlePlaceId && (
                 <p className="text-xs text-green-600 font-medium">
-                  ✓ Google Place ID & {businessType} linked successfully
+                  ✓ Valid Google Place verified & linked
                 </p>
               )}
             </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="name">Location Name / Branch</Label>
+              <Input
+                id="name"
+                placeholder="e.g. Downtown Flagship Store"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+              />
+            </div>
+
+            {/* Interactive Map Preview */}
+            <div className="space-y-2">
+              <Label>Map Verification Preview</Label>
+              <div className="w-full h-48 rounded-lg overflow-hidden border relative bg-muted">
+                {latitude !== null &&
+                longitude !== null &&
+                !isNaN(latitude) &&
+                !isNaN(longitude) ? (
+                  <Map
+                    key={`${latitude}-${longitude}`}
+                    defaultCenter={{ lat: latitude, lng: longitude }}
+                    center={{ lat: latitude, lng: longitude }}
+                    defaultZoom={15}
+                    gestureHandling={'greedy'}
+                    disableDefaultUI={true}
+                    className="w-full h-full"
+                  >
+                    <Marker position={{ lat: latitude, lng: longitude }} />
+                  </Map>
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground p-4 text-center text-xs">
+                    <MapPin className="w-6 h-6 mb-1 opacity-40" />
+                    Select an address from the dropdown above to preview its
+                    exact position on the map.
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
+
           <DialogFooter>
             <Button
               type="button"
