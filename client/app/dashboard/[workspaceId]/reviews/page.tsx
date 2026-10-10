@@ -1,7 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useParams } from 'next/navigation'
+import {
+  useParams,
+  useRouter,
+  useSearchParams,
+  usePathname,
+} from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import {
   Star,
@@ -14,16 +19,11 @@ import {
   AlertCircle,
   Store,
   RefreshCw,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  CardFooter,
-} from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardFooter } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import {
   Select,
@@ -40,65 +40,79 @@ import { syncLocationReviews } from '@/app/actions/syncReviews'
 
 export default function WorkspaceReviewsPage() {
   const params = useParams()
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+
   const workspaceId = params.workspaceId as string
   const supabase = createClient()
 
+  // Read search params for pagination & filters
+  const page = Number(searchParams.get('page')) || 1
+  const pageSize = Number(searchParams.get('pageSize')) || 10
+  const selectedLocation = searchParams.get('location') || 'all'
+  const selectedStatus = searchParams.get('status') || 'all'
+
   const [reviews, setReviews] = useState<any[]>([])
   const [locations, setLocations] = useState<any[]>([])
+  const [totalCount, setTotalCount] = useState(0)
   const [loading, setLoading] = useState(true)
-  const [generatingId, setGeneratingId] = useState<string | null>(null)
-
-  // Filters
-  const [selectedLocation, setSelectedLocation] = useState<string>('all')
-  const [selectedStatus, setSelectedStatus] = useState<string>('all')
-
-  //sync
   const [syncing, setSyncing] = useState(false)
+
+  const totalPages = Math.ceil(totalCount / pageSize)
+
+  // Helper to update URL search parameters dynamically
+  const updateQueryParam = (updates: Record<string, string>) => {
+    const params = new URLSearchParams(searchParams.toString())
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value === 'all' && (key === 'location' || key === 'status')) {
+        params.delete(key)
+      } else {
+        params.set(key, value)
+      }
+    })
+    router.push(`${pathname}?${params.toString()}`)
+  }
 
   const handleSyncReviews = async () => {
     setSyncing(true)
-    const result = await syncGoogleReviewsAction(locationId)
+    // If a specific location is selected, sync that location; otherwise sync the first available or let action handle it
+    const targetLocationId =
+      selectedLocation !== 'all' ? selectedLocation : locations[0]?.id
 
-    if (!result.success) {
-      alert(`Sync failed: ${result.error}`)
-    } else {
-      alert(`Successfully synced reviews!`)
-      router.refresh()
+    if (!targetLocationId) {
+      toast.error('No locations available to sync.')
+      setSyncing(false)
+      return
     }
+
+    const result = await syncLocationReviews(targetLocationId, workspaceId)
     setSyncing(false)
 
-    // fake review sync for testing
-    // setSyncing(true)
-    // const toastId = toast.loading(
-    //   'Syncing latest reviews from Google Places...',
-    // )
-
-    // try {
-    //   const response = await fetch(`/api/workspaces/${workspaceId}/sync`, {
-    //     method: 'POST',
-    //   })
-    //   const data = await response.json()
-
-    //   if (!response.ok) throw new Error(data.error || 'Sync failed')
-
-    //   toast.success('Successfully synchronized 1 new review!', { id: toastId })
-    //   // Refresh your reviews state or router
-    //   window.location.reload()
-    // } catch (err: any) {
-    //   console.error(err)
-    //   toast.error(err.message || 'Failed to sync reviews.', { id: toastId })
-    // } finally {
-    //   setSyncing(false)
-    // }
+    if (!result.success) {
+      toast.error(`Sync failed: ${result.error}`)
+    } else {
+      toast.success('Successfully synced reviews!')
+      router.refresh()
+    }
   }
+
   const loadReviewsData = async () => {
     try {
-      const { data: locs } = await supabase
-        .from('locations')
-        .select('id, name')
-        .eq('workspace_id', workspaceId)
+      setLoading(true)
+      // Fetch locations dropdown data if not already loaded
+      if (locations.length === 0) {
+        const { data: locs } = await supabase
+          .from('locations')
+          .select('id, name')
+          .eq('workspace_id', workspaceId)
 
-      setLocations(locs || [])
+        setLocations(locs || [])
+      }
+
+      // Calculate range for pagination
+      const from = (page - 1) * pageSize
+      const to = from + pageSize - 1
 
       let query = supabase
         .from('reviews')
@@ -107,9 +121,11 @@ export default function WorkspaceReviewsPage() {
           *,
           locations ( name )
         `,
+          { count: 'exact' },
         )
         .eq('workspace_id', workspaceId)
         .order('created_at', { ascending: false })
+        .range(from, to)
 
       if (selectedLocation !== 'all') {
         query = query.eq('location_id', selectedLocation)
@@ -119,9 +135,11 @@ export default function WorkspaceReviewsPage() {
         query = query.eq('status', selectedStatus)
       }
 
-      const { data: revs, error } = await query
+      const { data: revs, count, error } = await query
       if (error) throw error
+
       setReviews(revs || [])
+      setTotalCount(count || 0)
     } catch (err) {
       console.error('Error loading reviews:', err)
     } finally {
@@ -131,40 +149,7 @@ export default function WorkspaceReviewsPage() {
 
   useEffect(() => {
     loadReviewsData()
-  }, [workspaceId, selectedLocation, selectedStatus])
-
-  const handleGenerateAI = async (reviewId: string) => {
-    setGeneratingId(reviewId)
-
-    // Optional: show a loading toast if it takes a moment with local Ollama
-    const toastId = toast.loading('Generating AI response with Ollama...')
-
-    try {
-      const result = await generateAndSaveAIResponse(reviewId, workspaceId)
-
-      if (result.success) {
-        setReviews(
-          reviews.map((r) =>
-            r.id === reviewId
-              ? { ...r, ai_response: result.response, status: 'replied' }
-              : r,
-          ),
-        )
-        toast.success('AI response generated and saved successfully!', {
-          id: toastId,
-        })
-      } else {
-        toast.error('Failed to generate response: ' + result.error, {
-          id: toastId,
-        })
-      }
-    } catch (err) {
-      console.error(err)
-      toast.error('An unexpected error occurred.', { id: toastId })
-    } finally {
-      setGeneratingId(null)
-    }
-  }
+  }, [workspaceId, page, pageSize, selectedLocation, selectedStatus])
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -198,14 +183,6 @@ export default function WorkspaceReviewsPage() {
     }
   }
 
-  if (loading) {
-    return (
-      <div className="flex h-96 items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-      </div>
-    )
-  }
-
   return (
     <div className="space-y-8 max-w-6xl mx-auto">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -228,7 +205,14 @@ export default function WorkspaceReviewsPage() {
             <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
             {syncing ? 'Syncing...' : 'Sync Reviews'}
           </Button>
-          <Select value={selectedLocation} onValueChange={setSelectedLocation}>
+
+          {/* Location Filter */}
+          <Select
+            value={selectedLocation}
+            onValueChange={(val) =>
+              updateQueryParam({ location: val, page: '1' })
+            }
+          >
             <SelectTrigger className="w-[180px]">
               <Store className="w-4 h-4 mr-2 text-muted-foreground" />
               <SelectValue placeholder="All Locations" />
@@ -243,7 +227,13 @@ export default function WorkspaceReviewsPage() {
             </SelectContent>
           </Select>
 
-          <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+          {/* Status Filter */}
+          <Select
+            value={selectedStatus}
+            onValueChange={(val) =>
+              updateQueryParam({ status: val, page: '1' })
+            }
+          >
             <SelectTrigger className="w-[150px]">
               <Filter className="w-4 h-4 mr-2 text-muted-foreground" />
               <SelectValue placeholder="All Status" />
@@ -255,10 +245,31 @@ export default function WorkspaceReviewsPage() {
               <SelectItem value="flagged">Flagged</SelectItem>
             </SelectContent>
           </Select>
+
+          {/* Rows per page selector */}
+          <Select
+            value={pageSize.toString()}
+            onValueChange={(val) =>
+              updateQueryParam({ pageSize: val, page: '1' })
+            }
+          >
+            <SelectTrigger className="w-[90px]">
+              <SelectValue placeholder="10 / page" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="10">10 / page</SelectItem>
+              <SelectItem value="25">25 / page</SelectItem>
+              <SelectItem value="50">50 / page</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
-      {reviews.length === 0 ? (
+      {loading ? (
+        <div className="flex h-96 items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+        </div>
+      ) : reviews.length === 0 ? (
         <EmptyState
           icon={<MessageSquare className="w-6 h-6" />}
           title="No customer reviews found"
@@ -273,8 +284,7 @@ export default function WorkspaceReviewsPage() {
               : undefined
           }
           onAction={() => {
-            setSelectedLocation('all')
-            setSelectedStatus('all')
+            updateQueryParam({ location: 'all', status: 'all', page: '1' })
           }}
         />
       ) : (
@@ -312,7 +322,7 @@ export default function WorkspaceReviewsPage() {
               </CardHeader>
               <CardContent className="space-y-4 pb-4">
                 <p className="text-sm text-foreground/90 bg-muted/30 p-3 rounded-lg border">
-                  &ldquo;{review.review_text || 'No review_text text provided.'}
+                  &ldquo;{review.review_text || 'No review text provided.'}
                   &rdquo;
                 </p>
 
@@ -332,7 +342,6 @@ export default function WorkspaceReviewsPage() {
                   Source: Google Maps
                 </span>
 
-                {/* Context-Aware AI Reply Dialog Button */}
                 <AIReplyDialog
                   workspaceId={workspaceId}
                   review={{
@@ -345,6 +354,38 @@ export default function WorkspaceReviewsPage() {
               </CardFooter>
             </Card>
           ))}
+        </div>
+      )}
+
+      {/* Pagination Controls Footer */}
+      {!loading && totalPages > 0 && (
+        <div className="flex items-center justify-between pt-4 border-t">
+          <p className="text-sm text-muted-foreground">
+            Showing {totalCount === 0 ? 0 : (page - 1) * pageSize + 1} to{' '}
+            {Math.min(page * pageSize, totalCount)} of {totalCount} reviews
+          </p>
+
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page <= 1}
+              onClick={() => updateQueryParam({ page: (page - 1).toString() })}
+            >
+              <ChevronLeft className="w-4 h-4 mr-1" /> Previous
+            </Button>
+            <span className="text-sm font-medium px-2">
+              Page {page} of {totalPages || 1}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page >= totalPages}
+              onClick={() => updateQueryParam({ page: (page + 1).toString() })}
+            >
+              Next <ChevronRight className="w-4 h-4 ml-1" />
+            </Button>
+          </div>
         </div>
       )}
     </div>

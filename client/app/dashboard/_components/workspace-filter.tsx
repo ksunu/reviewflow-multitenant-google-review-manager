@@ -123,7 +123,7 @@ export default function WorkspaceFilter({
         </div>
       ) : (
         /* Added relative positioning and padding gutter for arrows without hiding them */
-        <div className="w-full relative px-8 md:px-6">
+        <div className="w-full relative px-8 md:px-4">
           <Carousel
             opts={{
               align: 'start',
@@ -131,7 +131,7 @@ export default function WorkspaceFilter({
             }}
             className="w-full"
           >
-            <CarouselContent className="-ml-4 pb-3 -ml-4 overflow-auto scrollbar-thin scrollbar-thumb-muted-foreground/20 hover:scrollbar-thumb-muted-foreground/40">
+            <CarouselContent className="-ml-4 -ml-4">
               {filteredWorkspaces.map((workspace) => (
                 <CarouselItem
                   key={workspace.id}
@@ -141,8 +141,8 @@ export default function WorkspaceFilter({
                 </CarouselItem>
               ))}
             </CarouselContent>
-            <CarouselPrevious className="-left-2 md:-left-4 h-8 w-8 bg-transparent" />
-            <CarouselNext className="-right-2 md:-right-4 h-8 w-8 bg-transparent" />
+            <CarouselPrevious className="-left-2 md:-left-4 h-8 w-8 cursor-pointer" />
+            <CarouselNext className="-right-2 md:-right-4 h-8 w-8 cursor-pointer" />
           </Carousel>
         </div>
       )}{' '}

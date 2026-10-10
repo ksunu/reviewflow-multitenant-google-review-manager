@@ -50,7 +50,7 @@ export default function WorkspaceLocationsClient({
   const [syncingId, setSyncingId] = useState<string | null>(null)
 
   const canManage = workspaceRole === 'owner' || workspaceRole === 'admin'
-  console.log(workspaceRole, canManage)
+
   const handleSync = async (location: any) => {
     setSyncingId(location.id)
     const res = await syncLocationReviews(location.id, workspaceId)

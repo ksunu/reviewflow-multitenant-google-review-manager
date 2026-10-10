@@ -1,5 +1,9 @@
+// src/app/api/workspaces/[workspaceId]/reviews/generate-reply/route.ts
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import OpenAI from 'openai'
+
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
 export async function POST(
   request: Request,
@@ -11,15 +15,45 @@ export async function POST(
       await request.json()
     const supabase = await createClient()
 
-    // 1. Fetch Workspace name & business type (if column exists, else default)
-    const { data: workspace } = await supabase
+    // 0. Authenticate user session
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // 1. Fetch Workspace data & quota limits
+    const { data: workspace, error: wsError } = await supabase
       .from('workspaces')
       .select('*')
       .eq('id', workspaceId)
       .single()
 
-    // 2. Fetch Review and its specific Location details
-    const { data: review } = await supabase
+    if (wsError || !workspace) {
+      return NextResponse.json(
+        { error: 'Workspace not found' },
+        { status: 404 },
+      )
+    }
+
+    // 2. Enforce Free Tier Quota Limits
+    const isPro = workspace.subscription_tier === 'pro'
+    const limit = isPro ? 500 : workspace.ai_reply_limit || 10
+    const used = workspace.ai_replies_used_this_month || 0
+
+    if (!isPro && used >= limit) {
+      return NextResponse.json(
+        {
+          error: `Monthly free AI reply limit reached (${used}/${limit}). Upgrade to Pro for unlimited AI responses.`,
+          requiresUpgrade: true,
+        },
+        { status: 403 },
+      )
+    }
+
+    // 3. Fetch Review and its specific Location details
+    const { data: review, error: revError } = await supabase
       .from('reviews')
       .select(
         `
@@ -30,10 +64,24 @@ export async function POST(
       .eq('id', reviewId)
       .single()
 
+    if (revError || !review) {
+      return NextResponse.json({ error: 'Review not found' }, { status: 404 })
+    }
+
+    // 4. Idempotency Guard: Block generation if already published to Google
+    if (review.reply_status === 'posted') {
+      return NextResponse.json(
+        {
+          error:
+            'A reply has already been published to Google for this review.',
+        },
+        { status: 400 },
+      )
+    }
+
     const companyName = workspace?.name || 'our business'
     const locationName = review?.locations?.name || 'this location'
     const locationAddress = review?.locations?.address || ''
-    // Fallback to workspace type or generic local business if location-specific type is blank
     const businessType =
       review?.locations?.business_type ||
       workspace?.business_type ||
@@ -71,31 +119,24 @@ Guidelines:
 
     let rawReply = ''
 
-    // 1. Try calling local Ollama instance
+    // 5. Call OpenAI gpt-4o-mini
     try {
-      const ollamaRes = await fetch('http://127.0.0.1:11434/api/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'llama3',
-          prompt: prompt,
-          stream: false,
-        }),
+      const completion = await openai.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: 150,
+        temperature: 0.7,
       })
 
-      if (ollamaRes.ok) {
-        const ollamaData = await ollamaRes.json()
-        if (ollamaData.response) {
-          rawReply = ollamaData.response.trim()
-        }
-      }
-    } catch (ollamaErr) {
-      console.log(
-        'Local Ollama unavailable, falling back to smart template simulation.',
+      rawReply = completion.choices[0]?.message?.content?.trim() || ''
+    } catch (openaiErr) {
+      console.error(
+        'OpenAI API error, falling back to smart template:',
+        openaiErr,
       )
     }
 
-    // 2. Fallback if Ollama is offline
+    // 6. Fallback if OpenAI fails or is offline
     if (!rawReply) {
       if (rating === 1) {
         rawReply = internalContext
@@ -106,13 +147,32 @@ Guidelines:
       }
     }
 
-    // 3. Clean up any accidental conversational filler from LLMs
+    // 7. Clean up any accidental conversational filler from LLMs
     const cleanedReply = rawReply
       .replace(/^(here is|sure,|certainly,|response:|draft:).*/i, '')
       .replace(/^["']|["']$/g, '')
       .trim()
 
-    return NextResponse.json({ reply: cleanedReply })
+    // 8. Update Database: Save draft, update status to 'drafted', and increment monthly usage counter
+    await supabase
+      .from('reviews')
+      .update({
+        ai_reply_draft: cleanedReply,
+        reply_status: 'drafted',
+      })
+      .eq('id', reviewId)
+
+    if (!isPro) {
+      await supabase
+        .from('workspaces')
+        .update({ ai_replies_used_this_month: used + 1 })
+        .eq('id', workspaceId)
+    }
+
+    return NextResponse.json({
+      reply: cleanedReply,
+      usage: { used: used + 1, limit },
+    })
   } catch (err: any) {
     console.error('AI reply error:', err)
     return NextResponse.json(

@@ -123,7 +123,7 @@ export function AIReplyDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
+      <DialogTrigger>
         <Button
           variant="outline"
           size="sm"
@@ -150,7 +150,7 @@ export function AIReplyDialog({
               Review ({review.rating} Stars):
             </div>
             <p className="text-muted-foreground italic">
-              "{review.review_text}"
+              &quot;{review.review_text}&quot;
             </p>
           </div>
 
