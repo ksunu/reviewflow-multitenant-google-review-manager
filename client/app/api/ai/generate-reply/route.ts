@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { generateObject } from 'ai'
 import { createOpenAI } from '@ai-sdk/openai'
 import { reviewAnalysisSchema } from '@/lib/ai/prompts'
+import { createClient } from '@/lib/supabase/server'
 
 // Ollama provides an OpenAI-compatible API endpoint locally
 const ollamaLocal = createOpenAI({
@@ -11,6 +12,15 @@ const ollamaLocal = createOpenAI({
 
 export async function POST(request: Request) {
   try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const { reviewComment, rating, brandVoice } = await request.json()
 
     const { object } = await generateObject({

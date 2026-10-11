@@ -1,6 +1,6 @@
 // src/app/api/workspaces/[workspaceId]/reviews/generate-reply/route.ts
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { getWorkspaceAuthorization } from '@/lib/supabase/authorization'
 import OpenAI from 'openai'
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
@@ -13,15 +13,14 @@ export async function POST(
     const { workspaceId } = await params
     const { reviewId, rating, review_text, internalContext, tone } =
       await request.json()
-    const supabase = await createClient()
-
-    // 0. Authenticate user session
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const access = await getWorkspaceAuthorization(workspaceId)
+    if (!access.authorized) {
+      return NextResponse.json(
+        { error: access.status === 401 ? 'Unauthorized' : 'Forbidden' },
+        { status: access.status },
+      )
     }
+    const { supabase } = access
 
     // 1. Fetch Workspace data & quota limits
     const { data: workspace, error: wsError } = await supabase
@@ -62,6 +61,7 @@ export async function POST(
       `,
       )
       .eq('id', reviewId)
+      .eq('workspace_id', workspaceId)
       .single()
 
     if (revError || !review) {

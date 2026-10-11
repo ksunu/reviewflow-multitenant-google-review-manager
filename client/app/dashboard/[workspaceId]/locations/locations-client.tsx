@@ -79,12 +79,13 @@ export default function WorkspaceLocationsClient({
     }
   }
 
-  const renderLocationCard = (loc: any, key: string) => {
+  const renderLocationCard = (loc: any) => {
+    if (!loc.id) return
     const isSyncing = syncingId === loc.id
 
     return (
       <Card
-        key={key}
+        key={loc.id}
         className="hover:border-primary/50 transition-colors flex flex-col justify-between h-full"
       >
         <CardHeader>
@@ -179,7 +180,7 @@ export default function WorkspaceLocationsClient({
           />
         ) : locations.length <= 3 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {locations.map((loc) => renderLocationCard(loc, loc.id))}
+            {locations.map((loc) => renderLocationCard(loc))}
           </div>
         ) : (
           <div className="px-6 md:px-12">

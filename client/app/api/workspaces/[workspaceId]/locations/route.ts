@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
 import { extractPrimaryBusinessType } from '@/lib/helpers/place-helpers'
+import { getWorkspaceAuthorization } from '@/lib/supabase/authorization'
 
 export async function POST(
   request: Request,
@@ -9,7 +9,14 @@ export async function POST(
   try {
     const { workspaceId } = await params
     const { name, address, googleTypes } = await request.json()
-    const supabase = await createClient()
+    const access = await getWorkspaceAuthorization(workspaceId)
+    if (!access.authorized) {
+      return NextResponse.json(
+        { error: access.status === 401 ? 'Unauthorized' : 'Forbidden' },
+        { status: access.status },
+      )
+    }
+    const { supabase } = access
 
     // Format the Google Places raw types array into a clean business type string
     // e.g., ['hair_care', 'beauty_salon'] becomes "Hair Care"

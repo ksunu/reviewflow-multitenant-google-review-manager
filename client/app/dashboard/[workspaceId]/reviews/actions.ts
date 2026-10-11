@@ -1,6 +1,6 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { getWorkspaceAuthorization } from '@/lib/supabase/authorization'
 import { generateReviewResponse } from '@/lib/ai/response-generator'
 import { revalidatePath } from 'next/cache'
 
@@ -8,7 +8,14 @@ export async function generateAndSaveAIResponse(
   reviewId: string,
   workspaceId: string,
 ) {
-  const supabase = await createClient()
+  const access = await getWorkspaceAuthorization(workspaceId)
+  if (!access.authorized) {
+    return {
+      success: false,
+      error: access.status === 401 ? 'Unauthorized' : 'Forbidden',
+    }
+  }
+  const { supabase } = access
 
   // 1. Fetch review and associated location name
   const { data: review, error: fetchError } = await supabase
@@ -20,6 +27,7 @@ export async function generateAndSaveAIResponse(
     `,
     )
     .eq('id', reviewId)
+    .eq('workspace_id', workspaceId)
     .single()
 
   if (fetchError || !review) {

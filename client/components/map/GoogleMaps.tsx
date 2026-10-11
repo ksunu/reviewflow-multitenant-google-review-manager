@@ -1,3 +1,4 @@
+// components/map/GoogleMaps.tsx
 'use client'
 
 import { useEffect } from 'react'
@@ -6,41 +7,59 @@ import { Map, AdvancedMarker, Pin, useMap } from '@vis.gl/react-google-maps'
 interface Location {
   id: string
   name: string
-  latitude: number | null
-  longitude: number | null
+  latitude: number | string | null
+  longitude: number | string | null
 }
 
 interface GoogleMapsProps {
   locations?: Location[]
 }
 
-// Internal helper component to adjust bounds based on markers
+const DEFAULT_FALLBACK_CENTER = { lat: 37.5665, lng: 126.978 }
+
+// Internal helper component to adjust bounds based on markers safely
 function MapBoundsController({ locations }: { locations: Location[] }) {
   const map = useMap()
 
   useEffect(() => {
     if (!map) return
 
-    const validLocations = locations.filter(
-      (loc) => loc.latitude !== null && loc.longitude !== null,
-    )
+    // Ensure google.maps library is fully loaded before using LatLngBounds
+    if (typeof window === 'undefined' || !window.google?.maps?.LatLngBounds) {
+      return
+    }
+
+    // Filter and ensure coordinates parse into valid finite numbers
+    const validLocations = locations.filter((loc) => {
+      const lat = Number(loc.latitude)
+      const lng = Number(loc.longitude)
+      return (
+        loc.latitude !== null &&
+        loc.longitude !== null &&
+        Number.isFinite(lat) &&
+        Number.isFinite(lng)
+      )
+    })
 
     if (validLocations.length === 0) return
 
+    const lat1 = Number(validLocations[0].latitude)
+    const lng1 = Number(validLocations[0].longitude)
+
     // If there's only one location, center on it with a standard zoom
     if (validLocations.length === 1) {
-      map.setCenter({
-        lat: validLocations[0].latitude!,
-        lng: validLocations[0].longitude!,
-      })
+      map.setCenter({ lat: lat1, lng: lng1 })
       map.setZoom(14)
       return
     }
 
-    // If multiple locations, calculate bounds to fit all of them
+    // If multiple locations, calculate bounds to fit all of them safely
     const bounds = new google.maps.LatLngBounds()
     validLocations.forEach((loc) => {
-      bounds.extend({ lat: loc.latitude!, lng: loc.longitude! })
+      bounds.extend({
+        lat: Number(loc.latitude),
+        lng: Number(loc.longitude),
+      })
     })
 
     // Fit map to bounds with padding (in pixels)
@@ -56,38 +75,60 @@ function MapBoundsController({ locations }: { locations: Location[] }) {
 }
 
 export default function GoogleMaps({ locations = [] }: GoogleMapsProps) {
-  const validLocations = locations.filter(
-    (loc) => loc.latitude !== null && loc.longitude !== null,
-  )
+  const validLocations = locations.filter((loc) => {
+    const lat = Number(loc.latitude)
+    const lng = Number(loc.longitude)
+    return (
+      loc.latitude !== null &&
+      loc.longitude !== null &&
+      Number.isFinite(lat) &&
+      Number.isFinite(lng)
+    )
+  })
 
-  const defaultCenter =
-    validLocations.length > 0
-      ? { lat: validLocations[0].latitude!, lng: validLocations[0].longitude! }
-      : { lat: 37.5665, lng: 126.978 } // Default fallback (e.g., Seoul)
+  const safeCenter = {
+    lat:
+      validLocations.length > 0
+        ? Number(validLocations[0].latitude)
+        : DEFAULT_FALLBACK_CENTER.lat,
+    lng:
+      validLocations.length > 0
+        ? Number(validLocations[0].longitude)
+        : DEFAULT_FALLBACK_CENTER.lng,
+  }
 
   return (
     <div className="w-full h-[450px] rounded-xl overflow-hidden border shadow-sm mt-8 relative">
       <Map
-        defaultCenter={defaultCenter}
+        defaultCenter={safeCenter}
         defaultZoom={12}
         mapId={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || 'DEMO_MAP_ID'}
         gestureHandling={'greedy'}
         disableFullscreenControl={false}
       >
         <MapBoundsController locations={locations} />
-        {validLocations.map((loc) => (
-          <AdvancedMarker
-            key={loc.id}
-            position={{ lat: loc.latitude!, lng: loc.longitude! }}
-            title={loc.name}
-          >
-            <Pin
-              background={'#0f172a'}
-              glyphColor={'#ffffff'}
-              borderColor={'#0f172a'}
-            />
-          </AdvancedMarker>
-        ))}
+        {validLocations.map((loc, index) => {
+          const lat = Number(loc.latitude)
+          const lng = Number(loc.longitude)
+
+          // Use a fallback composite key in case loc.id is duplicated or missing
+          const uniqueKey = loc.id
+            ? `${loc.id}-${index}`
+            : `loc-marker-${index}`
+          return (
+            <AdvancedMarker
+              key={uniqueKey}
+              position={{ lat, lng }}
+              title={loc.name}
+            >
+              <Pin
+                background={'#0f172a'}
+                glyphColor={'#ffffff'}
+                borderColor={'#0f172a'}
+              />
+            </AdvancedMarker>
+          )
+        })}
       </Map>
     </div>
   )

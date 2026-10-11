@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { getWorkspaceAuthorization } from '@/lib/supabase/authorization'
 
 const SAMPLE_REVIEWERS = [
   {
@@ -58,7 +58,14 @@ export async function POST(
 ) {
   try {
     const { workspaceId } = await params
-    const supabase = await createClient()
+    const access = await getWorkspaceAuthorization(workspaceId)
+    if (!access.authorized) {
+      return NextResponse.json(
+        { error: access.status === 401 ? 'Unauthorized' : 'Forbidden' },
+        { status: access.status },
+      )
+    }
+    const { supabase } = access
 
     // 1. Fetch locations for this workspace
     const { data: locations, error: locError } = await supabase

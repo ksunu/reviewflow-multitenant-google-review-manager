@@ -1,8 +1,8 @@
 // src/app/actions/syncReviews.ts
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
 import { ApifyClient } from 'apify-client'
+import { getWorkspaceAuthorization } from '@/lib/supabase/authorization'
 
 const apify = new ApifyClient({
   token: process.env.APIFY_API_TOKEN,
@@ -12,20 +12,22 @@ export async function syncLocationReviews(
   locationId: string,
   workspaceId: string,
 ) {
-  const supabase = await createClient()
+  const access = await getWorkspaceAuthorization(workspaceId)
+  if (!access.authorized) {
+    return {
+      success: false,
+      error: access.status === 401 ? 'Unauthorized' : 'Forbidden',
+    }
+  }
+  const { supabase } = access
 
   try {
-    // 1. Authenticate user
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-    if (!user) return { success: false, error: 'Unauthorized' }
-
     // 2. Fetch Location details & Place ID
     const { data: location, error: locError } = await supabase
       .from('locations')
       .select('id, google_place_id, workspace_id, last_synced_at')
       .eq('id', locationId)
+      .eq('workspace_id', workspaceId)
       .single()
 
     if (locError || !location?.google_place_id) {
