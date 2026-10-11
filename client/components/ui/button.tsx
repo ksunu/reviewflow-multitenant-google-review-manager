@@ -33,14 +33,14 @@ const buttonVariants = cva(
   },
 )
 
-interface ButtonProps
+export interface ButtonProps
   extends React.ComponentProps<'button'>, VariantProps<typeof buttonVariants> {
   asChild?: boolean
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
-    // Use Slot if asChild is true, otherwise standard button
+    // asChild is successfully destructured here so it never leaks into {...props}
     const Comp = asChild ? Slot : 'button'
 
     return (

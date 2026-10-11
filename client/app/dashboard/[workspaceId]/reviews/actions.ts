@@ -23,7 +23,7 @@ export async function generateAndSaveAIResponse(
     .select(
       `
       *,
-      locations ( name )
+      locations ( name, workspace_id )
     `,
     )
     .eq('id', reviewId)
@@ -32,6 +32,9 @@ export async function generateAndSaveAIResponse(
 
   if (fetchError || !review) {
     return { success: false, error: 'Review not found.' }
+  }
+  if (review.locations?.workspace_id !== workspaceId) {
+    return { success: false, error: 'Review location mismatch.' }
   }
 
   const businessName = review.locations?.name || 'our business'
@@ -55,6 +58,7 @@ export async function generateAndSaveAIResponse(
       status: 'replied',
     })
     .eq('id', reviewId)
+    .eq('workspace_id', workspaceId)
 
   if (updateError) {
     return { success: false, error: updateError.message }

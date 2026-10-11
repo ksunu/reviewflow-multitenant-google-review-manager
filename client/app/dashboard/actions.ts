@@ -43,6 +43,7 @@ export async function updateReviewResponse(
       updated_at: new Date().toISOString(),
     })
     .eq('id', responseId)
+    .eq('review_id', response.review_id)
 
   if (error) {
     console.error('Failed to update response:', error)

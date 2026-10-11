@@ -57,7 +57,7 @@ export async function POST(
       .select(
         `
         *,
-        locations ( name, address, business_type )
+        locations ( name, address, business_type, workspace_id )
       `,
       )
       .eq('id', reviewId)
@@ -66,6 +66,12 @@ export async function POST(
 
     if (revError || !review) {
       return NextResponse.json({ error: 'Review not found' }, { status: 404 })
+    }
+    if (review.locations?.workspace_id !== workspaceId) {
+      return NextResponse.json(
+        { error: 'Review location mismatch' },
+        { status: 409 },
+      )
     }
 
     // 4. Idempotency Guard: Block generation if already published to Google
@@ -220,6 +226,7 @@ Guidelines:
         sentiment: sentiment,
       })
       .eq('id', reviewId)
+      .eq('workspace_id', workspaceId)
 
     if (!isPro) {
       await supabase

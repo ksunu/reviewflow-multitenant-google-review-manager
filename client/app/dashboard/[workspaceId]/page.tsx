@@ -58,6 +58,7 @@ export default function WorkspaceOverviewPage() {
             .from('locations')
             .select('name')
             .eq('id', locationId)
+            .eq('workspace_id', workspaceId)
             .single()
           if (locData) locationName = locData.name
         }

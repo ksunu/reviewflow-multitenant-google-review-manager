@@ -1,12 +1,13 @@
 // src/app/actions/syncReviews.ts
 'use server'
 
-import { ApifyClient } from 'apify-client'
 import { getWorkspaceAuthorization } from '@/lib/supabase/authorization'
 
-const apify = new ApifyClient({
-  token: process.env.APIFY_API_TOKEN,
-})
+// Apify Client commented out
+// import { ApifyClient } from 'apify-client'
+// const apify = new ApifyClient({
+//   token: process.env.APIFY_API_TOKEN,
+// })
 
 export async function syncLocationReviews(
   locationId: string,
@@ -63,6 +64,7 @@ export async function syncLocationReviews(
       .from('reviews')
       .select('review_date')
       .eq('location_id', locationId)
+      .eq('workspace_id', workspaceId)
       .order('review_date', { ascending: false })
       .limit(1)
       .single()
@@ -71,34 +73,33 @@ export async function syncLocationReviews(
       ? new Date(latestReview.review_date).getTime()
       : 0
 
-    // 6. Configure Apify Google Maps Scraper Actor Input
-    // Free tier checks top 20 reviews; Pro checks up to 100 historical reviews
-    const reviewsLimit = isPro ? 100 : 20
-
-    const input = {
-      startUrls: [
-        `https://www.google.com/maps/place/?q=place_id:${location.google_place_id}`,
-      ],
-      maxReviews: reviewsLimit,
-      reviewsSort: 'newest',
-      // 'all' preserves original review languages without auto-translation
-      language: workspace?.language || 'all',
+    // 6. Fetch reviews directly via Google Places API (Details endpoint)
+    const apiKey =
+      process.env.GOOGLE_MAPS_API_KEY ||
+      process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
+    if (!apiKey) {
+      throw new Error('Google Maps API Key is not configured on the server.')
     }
 
-    // Run the compass/crawler-google-places Actor on Apify
-    const run = await apify.actor('compass/crawler-google-places').call(input)
+    const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${location.google_place_id}&fields=reviews,name&key=${apiKey}`
 
-    // Fetch scraped dataset items
-    const { items } = await apify.dataset(run.defaultDatasetId).listItems()
+    const response = await fetch(url)
+    const data = await response.json()
 
-    const placeData: any = items?.[0]
-    const googleReviews = placeData?.reviews || []
+    if (data.status !== 'OK' && data.status !== 'ZERO_RESULTS') {
+      throw new Error(
+        `Google Places API error: ${data.status} - ${data.error_message || ''}`,
+      )
+    }
+
+    const googleReviews = data.result?.reviews || []
 
     if (!googleReviews.length) {
       await supabase
         .from('locations')
         .update({ last_synced_at: new Date().toISOString() })
         .eq('id', locationId)
+        .eq('workspace_id', workspaceId)
 
       return {
         success: true,
@@ -107,25 +108,23 @@ export async function syncLocationReviews(
       }
     }
 
-    // 7. Format and filter incoming Apify reviews
+    // 7. Format and filter incoming Google Places reviews
     const reviewsToUpsert = googleReviews
       .map((rev: any) => ({
         workspace_id: workspaceId,
         location_id: locationId,
-        author_name: rev.name || rev.author_name || 'Anonymous',
-        author_url: rev.reviewerUrl || rev.author_url || null,
-        profile_photo_url:
-          rev.reviewerPhotoUrl || rev.profile_photo_url || null,
-        rating: rev.stars || rev.rating,
-        review_text: rev.text || rev.review_text || '',
-        review_date: rev.publishedAtDate
-          ? new Date(rev.publishedAtDate).toISOString()
+        author_name: rev.author_name || 'Anonymous',
+        author_url: rev.author_url || null,
+        profile_photo_url: rev.profile_photo_url || null,
+        rating: rev.rating,
+        review_text: rev.text || '',
+        review_date: rev.time
+          ? new Date(rev.time * 1000).toISOString()
           : new Date().toISOString(),
-        relative_time_description:
-          rev.publishedAgo || rev.relative_time_description || '',
-        source: 'apify_google_maps',
+        relative_time_description: rev.relative_time_description || '',
+        source: 'google_places_api',
         status: 'pending',
-        reply_status: rev.responseFromOwnerText ? 'posted' : 'unreplied',
+        reply_status: 'unreplied',
       }))
       .filter((rev: any) => {
         const reviewTime = new Date(rev.review_date).getTime()
@@ -149,10 +148,11 @@ export async function syncLocationReviews(
       .from('locations')
       .update({ last_synced_at: new Date().toISOString() })
       .eq('id', locationId)
+      .eq('workspace_id', workspaceId)
 
     return { success: true, count: reviewsToUpsert.length }
   } catch (err: any) {
-    console.error('Apify review sync error:', err)
+    console.error('Google Places review sync error:', err)
     return { success: false, error: err.message || 'Failed to sync reviews.' }
   }
 }

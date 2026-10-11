@@ -100,6 +100,7 @@ export function AIReplyDialog({
           status: 'replied',
         })
         .eq('id', review.id)
+        .eq('workspace_id', workspaceId)
 
       if (error) throw error
 
