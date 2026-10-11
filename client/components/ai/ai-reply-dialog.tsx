@@ -1,3 +1,4 @@
+// src/components/ai/ai-reply-dialog.tsx
 'use client'
 
 import { useState } from 'react'
@@ -53,6 +54,7 @@ export function AIReplyDialog({
     setLoading(true)
     setGeneratedReply('')
     try {
+      // Matches the API route path we configured
       const res = await fetch(`/api/workspaces/${workspaceId}/ai-reply`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -66,7 +68,13 @@ export function AIReplyDialog({
       })
 
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Generation failed')
+      if (!res.ok) {
+        if (data.requiresUpgrade) {
+          toast.error(data.error)
+          return
+        }
+        throw new Error(data.error || 'Generation failed')
+      }
 
       setGeneratedReply(data.reply)
       toast.success('AI reply generated successfully!')
@@ -84,11 +92,11 @@ export function AIReplyDialog({
     const toastId = toast.loading('Saving response to database...')
 
     try {
-      // Assuming your reviews table has columns like ai_response and status
       const { error } = await supabase
         .from('reviews')
         .update({
-          ai_response: generatedReply,
+          ai_reply_draft: generatedReply,
+          reply_status: 'drafted',
           status: 'replied',
         })
         .eq('id', review.id)
@@ -100,7 +108,6 @@ export function AIReplyDialog({
       })
       setOpen(false)
 
-      // Trigger parent component refresh if provided
       if (onReplySaved) {
         onReplySaved()
       } else {
@@ -123,13 +130,17 @@ export function AIReplyDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger>
+      {/* FIXED: Added 'asChild' to prevent <button> inside <button> hydration error */}
+      <DialogTrigger asChild>
         <Button
+          asChild // <--- ADD THIS PROP
           variant="outline"
           size="sm"
-          className="gap-1.5 text-xs h-8 border-primary/30 hover:bg-primary/5 text-primary"
+          className="gap-1.5 text-xs h-8 border-primary/30 hover:bg-primary/5 text-primary cursor-pointer"
         >
-          <Sparkles className="w-3.5 h-3.5" /> AI Reply
+          <span>
+            <Sparkles className="w-3.5 h-3.5" /> AI Reply
+          </span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-xl">
@@ -138,7 +149,7 @@ export function AIReplyDialog({
             <Sparkles className="w-5 h-5 text-primary" /> AI Response Assistant
           </DialogTitle>
           <DialogDescription>
-            Draft and save a tailored reply for {review.author_name}'s{' '}
+            Draft and save a tailored reply for {review.author_name}&apos;s{' '}
             {review.rating}-star review.
           </DialogDescription>
         </DialogHeader>

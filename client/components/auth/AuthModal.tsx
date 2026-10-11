@@ -3,6 +3,9 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import disposableDomains from 'disposable-email-domains'
+import { Button } from '@/components/ui/button'
+import { useTranslation } from 'react-i18next'
 
 interface AuthModalProps {
   isOpen: boolean
@@ -15,6 +18,7 @@ export function AuthModal({
   onClose,
   initialMode = 'register',
 }: AuthModalProps) {
+  const { t } = useTranslation()
   const [mode, setMode] = useState<'login' | 'register'>(initialMode)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -30,8 +34,11 @@ export function AuthModal({
     e.preventDefault()
     setLoading(true)
     setErrorMsg(null)
-
     if (mode === 'register') {
+      const domain = email.split('@')[1].toLowerCase()
+      if (disposableDomains.includes(domain)) {
+        throw new Error(t('auth.message.disposableEmail'))
+      }
       const { error } = await supabase.auth.signUp({
         email,
         password,
@@ -39,7 +46,7 @@ export function AuthModal({
       if (error) {
         setErrorMsg(error.message)
       } else {
-        alert('Registration successful! Please check your email or sign in.')
+        alert(t('auth.message.registrationSuccess'))
         setMode('login')
       }
     } else {
@@ -84,7 +91,7 @@ export function AuthModal({
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">
-              Email Address
+              {t('auth.emailAddress')}
             </label>
             <input
               type="email"
@@ -98,7 +105,7 @@ export function AuthModal({
 
           <div>
             <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">
-              Password
+              {t('auth.password')}
             </label>
             <input
               type="password"
@@ -110,17 +117,17 @@ export function AuthModal({
             />
           </div>
 
-          <button
+          <Button
             type="submit"
             disabled={loading}
-            className="w-full py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-md transition shadow-sm text-sm disabled:opacity-50"
+            className="w-full py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-md transition shadow-sm text-sm disabled:opacity-50 cursor-pointer"
           >
             {loading
-              ? 'Processing...'
+              ? t('auth.processing')
               : mode === 'login'
-                ? 'Sign In'
-                : 'Create Account'}
-          </button>
+                ? t('auth.login')
+                : t('auth.createAccount')}
+          </Button>
         </form>
 
         <div className="text-center text-xs text-gray-500 pt-2 border-t">
@@ -129,9 +136,9 @@ export function AuthModal({
               Don&apos;t have an account?{' '}
               <button
                 onClick={() => setMode('register')}
-                className="text-purple-600 font-semibold hover:underline"
+                className="text-purple-600 font-semibold hover:underline cursor-pointer"
               >
-                Register
+                {t('auth.register')}
               </button>
             </p>
           ) : (
@@ -139,9 +146,9 @@ export function AuthModal({
               Already have an account?{' '}
               <button
                 onClick={() => setMode('login')}
-                className="text-purple-600 font-semibold hover:underline"
+                className="text-purple-600 font-semibold hover:underline cursor-pointer"
               >
-                Sign In
+                {t('auth.login')}
               </button>
             </p>
           )}

@@ -93,8 +93,8 @@ export default async function DashboardPage() {
 
   if (workspaceMemberships.length === 0) {
     return (
-      <div className="flex h-screen w-full items-center justify-center p-6 bg-background">
-        <Card className="max-w-md w-full text-center p-6 border-dashed">
+      <div className="flex h-[calc(100vh-64px)] w-full items-center justify-center bg-background">
+        <Card className="max-w-md w-full text-center border-dashed">
           <CardHeader>
             <div className="mx-auto bg-primary/10 p-3 rounded-full w-fit mb-2 text-primary">
               <Building2 className="w-8 h-8" />
@@ -105,7 +105,7 @@ export default async function DashboardPage() {
               workspace to start managing locations and customer reviews.
             </CardDescription>
           </CardHeader>
-          <CardFooter className="justify-center pt-2">
+          <CardFooter className="justify-center">
             <Button asChild className="w-full">
               <Link href="/dashboard/new">
                 <Plus className="w-4 h-4 mr-2" /> Create Workspace

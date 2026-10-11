@@ -103,24 +103,19 @@ export function NavigationHeader({
         ) : (
           // Guest View
           <>
-            <Link
-              href="/dashboard"
-              className="text-sm font-medium text-gray-600 hover:text-gray-900 transition hidden sm:inline"
-            >
-              {t('nav.dashboardPreview')}
-            </Link>
-            <button
+            <Button
               onClick={() => onOpenAuth('login')}
-              className="text-sm font-medium text-gray-700 hover:text-black px-3 py-1.5"
+              className="text-sm font-medium text-gray-700 hover:text-black px-3 py-1.5 cursor-pointer"
+              variant="ghost"
             >
               {t('nav.signIn')}
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={() => onOpenAuth('register')}
-              className="text-sm font-medium bg-black text-white px-4 py-2 rounded-md hover:bg-gray-800 transition shadow-sm"
+              className="text-sm font-medium bg-black text-white px-4 py-2 rounded-md hover:bg-gray-800 transition shadow-sm cursor-pointer"
             >
               {t('nav.getStarted')}
-            </button>
+            </Button>
           </>
         )}
       </div>

@@ -1,4 +1,24 @@
 {
+  "auth": {
+    "emailAddress": "Email Address",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "login": "Login",
+    "register": "Register",
+    "forgotPassword": "Forgot Password?",
+    "createAccount": "Create Account",
+    "processing": "Processing...",
+    "message": {
+      "disposableEmail": "Disposable email addresses are not allowed. Please use a valid work or personal email.",
+      "registrationSuccess": "Registration successful! Please check your email or sign in."
+    }
+  },
+  "onboarding": {
+    "title": "Welcome to Review Manager",
+    "subtitle": "Streamline your multi-location reputation management with AI-powered automation.",
+    "getStarted": "Get Started",
+    "signIn": "Sign In"
+  },
   "nav": {
     "dashboardPreview": "Dashboard Preview →",
     "signIn": "Sign In",

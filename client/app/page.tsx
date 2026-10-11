@@ -21,7 +21,6 @@ export default function LandingPage() {
   return (
     <ClientOnlyWrapper>
       <div className="min-h-screen flex flex-col bg-white text-gray-900">
-        {/* Navigation Header */}
         <NavigationHeader
           onOpenAuth={(mode) => {
             setAuthMode(mode)
