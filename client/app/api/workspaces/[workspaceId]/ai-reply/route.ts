@@ -2,8 +2,17 @@
 import { NextResponse } from 'next/server'
 import { getWorkspaceAuthorization } from '@/lib/supabase/authorization'
 import OpenAI from 'openai'
+import { z } from 'zod'
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+const aiReplyRequestSchema = z.object({
+  reviewId: z.string().uuid(),
+  internalContext: z.string().max(3000).optional().default(''),
+  tone: z
+    .enum(['empathetic', 'firm', 'dispute'])
+    .optional()
+    .default('empathetic'),
+})
 
 export async function POST(
   request: Request,
@@ -11,8 +20,21 @@ export async function POST(
 ) {
   try {
     const { workspaceId } = await params
-    const { reviewId, rating, review_text, internalContext, tone } =
-      await request.json()
+    let requestBody: unknown
+    try {
+      requestBody = await request.json()
+    } catch {
+      return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
+    }
+
+    const parsedBody = aiReplyRequestSchema.safeParse(requestBody)
+    if (!parsedBody.success) {
+      return NextResponse.json(
+        { error: 'Invalid AI reply request' },
+        { status: 400 },
+      )
+    }
+    const { reviewId, internalContext, tone } = parsedBody.data
     const access = await getWorkspaceAuthorization(workspaceId)
     if (!access.authorized) {
       return NextResponse.json(
@@ -37,11 +59,10 @@ export async function POST(
     }
 
     // 2. Enforce Free Tier Quota Limits
-    const isPro = workspace.subscription_tier === 'pro'
-    const limit = isPro ? 500 : workspace.ai_reply_limit || 10
+    const limit = workspace.ai_reply_limit || 10
     const used = workspace.ai_replies_used_this_month || 0
 
-    if (!isPro && used >= limit) {
+    if (used >= limit) {
       return NextResponse.json(
         {
           error: `Monthly free AI reply limit reached (${used}/${limit}). Upgrade to Pro for unlimited AI responses.`,
@@ -93,6 +114,8 @@ export async function POST(
       workspace?.business_type ||
       'local business'
     const customerName = review?.author_name || 'Valued Customer'
+    const rating = review.rating
+    const review_text = review.review_text || ''
 
     // Determine review sentiment based on star rating
     let sentiment = 'neutral'
@@ -217,28 +240,50 @@ Guidelines:
       .replace(/^["']|["']$/g, '')
       .trim()
 
-    // 9. Update Database: Save draft, update sentiment, set status to 'drafted', increment usage
-    await supabase
-      .from('reviews')
-      .update({
-        ai_reply_draft: cleanedReply,
-        reply_status: 'drafted',
-        sentiment: sentiment,
-      })
-      .eq('id', reviewId)
-      .eq('workspace_id', workspaceId)
+    // Save the reply and consume quota in one database transaction.
+    const { data: usage, error: saveError } = await supabase.rpc(
+      'save_ai_reply_atomically',
+      {
+        p_workspace_id: workspaceId,
+        p_review_id: reviewId,
+        p_reply: cleanedReply,
+        p_sentiment: sentiment,
+      },
+    )
 
-    if (!isPro) {
-      await supabase
-        .from('workspaces')
-        .update({ ai_replies_used_this_month: used + 1 })
-        .eq('id', workspaceId)
+    if (saveError) {
+      if (saveError.message.includes('AI_REPLY_LIMIT_REACHED')) {
+        return NextResponse.json(
+          {
+            error: `Monthly free AI reply limit reached (${used}/${limit}). Upgrade to Pro for unlimited AI responses.`,
+            requiresUpgrade: true,
+          },
+          { status: 403 },
+        )
+      }
+      if (saveError.message.includes('REVIEW_ALREADY_POSTED')) {
+        return NextResponse.json(
+          {
+            error:
+              'A reply has already been published to Google for this review.',
+          },
+          { status: 400 },
+        )
+      }
+      if (saveError.message.includes('REVIEW_NOT_FOUND')) {
+        return NextResponse.json({ error: 'Review not found' }, { status: 404 })
+      }
+      console.error('Failed to save AI reply:', saveError)
+      return NextResponse.json(
+        { error: 'Failed to save AI response' },
+        { status: 500 },
+      )
     }
 
     return NextResponse.json({
       reply: cleanedReply,
       sentiment,
-      usage: { used: used + 1, limit },
+      usage,
     })
   } catch (err: any) {
     console.error('AI reply error:', err)
