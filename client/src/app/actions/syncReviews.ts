@@ -53,14 +53,16 @@ export async function syncLocationReviews(
     // }
 
     // 5. Fetch latest review timestamp for incremental syncing
-    const { data: latestReview } = await supabase
+    const { data: latestReview, error: latestReviewError } = await supabase
       .from('reviews')
       .select('review_date')
       .eq('location_id', locationId)
       .eq('workspace_id', workspaceId)
       .order('review_date', { ascending: false })
       .limit(1)
-      .single()
+      .maybeSingle()
+
+    if (latestReviewError) throw latestReviewError
 
     const lastSyncTimestamp = latestReview?.review_date
       ? new Date(latestReview.review_date).getTime()
@@ -76,7 +78,12 @@ export async function syncLocationReviews(
 
     const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${location.google_place_id}&fields=reviews,name&reviews_sort=newest&key=${apiKey}`
 
-    const response = await fetch(url)
+    const response = await fetch(url, {
+      signal: AbortSignal.timeout(15_000),
+    })
+    if (!response.ok) {
+      throw new Error(`Google Places HTTP error: ${response.status}`)
+    }
     const data = await response.json()
 
     if (data.status !== 'OK' && data.status !== 'ZERO_RESULTS') {
@@ -88,11 +95,13 @@ export async function syncLocationReviews(
     const googleReviews = data.result?.reviews || []
 
     if (!googleReviews.length) {
-      await supabase
+      const { error: syncTimestampError } = await supabase
         .from('locations')
         .update({ last_synced_at: new Date().toISOString() })
         .eq('id', locationId)
         .eq('workspace_id', workspaceId)
+
+      if (syncTimestampError) throw syncTimestampError
 
       return {
         success: true,
@@ -141,11 +150,13 @@ export async function syncLocationReviews(
     }
 
     // 9. Update last_synced_at timestamp on location
-    await supabase
+    const { error: syncTimestampError } = await supabase
       .from('locations')
       .update({ last_synced_at: new Date().toISOString() })
       .eq('id', locationId)
       .eq('workspace_id', workspaceId)
+
+    if (syncTimestampError) throw syncTimestampError
 
     return { success: true, count: insertedCount }
   } catch (err: any) {
