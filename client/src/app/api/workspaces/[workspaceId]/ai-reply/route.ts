@@ -4,7 +4,9 @@ import { getWorkspaceAuthorization } from '@/lib/supabase/authorization'
 import OpenAI from 'openai'
 import { z } from 'zod'
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+const openai = process.env.OPENAI_API_KEY
+  ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+  : null
 const aiReplyRequestSchema = z.object({
   reviewId: z.string().uuid(),
   internalContext: z.string().max(3000).optional().default(''),
@@ -176,6 +178,7 @@ Guidelines:
       const ollamaRes = await fetch('http://127.0.0.1:11434/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: AbortSignal.timeout(8_000),
         body: JSON.stringify({
           model: 'llama3',
           prompt: prompt,
@@ -196,14 +199,17 @@ Guidelines:
     }
 
     // 6. Fallback to OpenAI gpt-4o-mini if Ollama is offline
-    if (!rawReply && process.env.OPENAI_API_KEY) {
+    if (!rawReply && openai) {
       try {
-        const completion = await openai.chat.completions.create({
-          model: 'gpt-4o-mini',
-          messages: [{ role: 'user', content: prompt }],
-          max_tokens: 150,
-          temperature: 0.7,
-        })
+        const completion = await openai.chat.completions.create(
+          {
+            model: 'gpt-4o-mini',
+            messages: [{ role: 'user', content: prompt }],
+            max_tokens: 150,
+            temperature: 0.7,
+          },
+          { timeout: 20_000, maxRetries: 0 },
+        )
 
         rawReply = completion.choices[0]?.message?.content?.trim() || ''
       } catch (openaiErr) {
