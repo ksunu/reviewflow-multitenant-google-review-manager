@@ -89,7 +89,12 @@ export default function WorkspaceReviewsPage() {
     if (!result.success) {
       toast.error(`Sync failed: ${result.error}`)
     } else {
-      toast.success('Successfully synced reviews!')
+      const count = result.count ?? 0
+      toast.success(
+        count === 0
+          ? 'Sync complete. No new reviews found.'
+          : `Synced ${count} new review${count === 1 ? '' : 's'}.`,
+      )
       router.refresh()
     }
   }

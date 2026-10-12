@@ -38,19 +38,19 @@ export async function syncLocationReviews(
     // The current workspaces schema has no subscription_tier or language columns,
     // so syncs use the available free-tier cooldown for every workspace.
     // 3. Cooldown Guard (once every 24 hours)
-    if (location.last_synced_at) {
-      const lastSync = new Date(location.last_synced_at).getTime()
-      const hoursSinceLastSync = (Date.now() - lastSync) / (1000 * 60 * 60)
+    // if (location.last_synced_at) {
+    //   const lastSync = new Date(location.last_synced_at).getTime()
+    //   const hoursSinceLastSync = (Date.now() - lastSync) / (1000 * 60 * 60)
 
-      if (hoursSinceLastSync < 24) {
-        const hoursRemaining = Math.ceil(24 - hoursSinceLastSync)
-        return {
-          success: false,
-          error: `Free tier syncs once every 24 hours. Try again in ${hoursRemaining} hours, or upgrade to Pro.`,
-          requiresUpgrade: true,
-        }
-      }
-    }
+    //   if (hoursSinceLastSync < 24) {
+    //     const hoursRemaining = Math.ceil(24 - hoursSinceLastSync)
+    //     return {
+    //       success: false,
+    //       error: `Free tier syncs once every 24 hours. Try again in ${hoursRemaining} hours, or upgrade to Pro.`,
+    //       requiresUpgrade: true,
+    //     }
+    //   }
+    // }
 
     // 5. Fetch latest review timestamp for incremental syncing
     const { data: latestReview } = await supabase
@@ -74,7 +74,7 @@ export async function syncLocationReviews(
       throw new Error('Google Maps API Key is not configured on the server.')
     }
 
-    const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${location.google_place_id}&fields=reviews,name&key=${apiKey}`
+    const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${location.google_place_id}&fields=reviews,name&reviews_sort=newest&key=${apiKey}`
 
     const response = await fetch(url)
     const data = await response.json()
@@ -125,15 +125,19 @@ export async function syncLocationReviews(
         return lastSyncTimestamp === 0 || reviewTime >= lastSyncTimestamp
       })
 
-    // 8. Upsert safely to prevent duplicates
+    // 8. Insert only new reviews and report the actual inserted count.
+    let insertedCount = 0
     if (reviewsToUpsert.length > 0) {
-      const { error: upsertError } = await supabase
+      const { data: insertedReviews, error: upsertError } = await supabase
         .from('reviews')
         .upsert(reviewsToUpsert, {
           onConflict: 'workspace_id,location_id,review_date,author_name',
+          ignoreDuplicates: true,
         })
+        .select('id')
 
       if (upsertError) throw upsertError
+      insertedCount = insertedReviews?.length ?? 0
     }
 
     // 9. Update last_synced_at timestamp on location
@@ -143,7 +147,7 @@ export async function syncLocationReviews(
       .eq('id', locationId)
       .eq('workspace_id', workspaceId)
 
-    return { success: true, count: reviewsToUpsert.length }
+    return { success: true, count: insertedCount }
   } catch (err: any) {
     console.error('Google Places review sync error:', err)
     return { success: false, error: err.message || 'Failed to sync reviews.' }
