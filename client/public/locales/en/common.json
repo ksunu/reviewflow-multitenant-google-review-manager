@@ -4,6 +4,7 @@
     "password": "Password",
     "confirmPassword": "Confirm Password",
     "login": "Login",
+    "logout": "Sign Out",
     "register": "Register",
     "forgotPassword": "Forgot Password?",
     "createAccount": "Create Account",

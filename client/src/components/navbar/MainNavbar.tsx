@@ -6,14 +6,9 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import { LanguageSwitcher } from '@/components/language/LanguageSwitcher'
-
-import { LogOut, Zap } from 'lucide-react'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
+import { Zap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { SignOutButton } from '@/components/auth/SignOutButton'
 
 export function NavigationHeader({
   onOpenAuth,
@@ -81,24 +76,7 @@ export function NavigationHeader({
             >
               Dashboard →
             </Link>
-            <Popover>
-              <PopoverTrigger
-                openOnHover
-                render={
-                  <Button
-                    onClick={handleSignOut}
-                    variant="ghost"
-                    className="cursor-pointer"
-                    size="icon"
-                  >
-                    <LogOut size={16} />
-                  </Button>
-                }
-              />
-              <PopoverContent className="w-20 d-flex justify-center items-center text-sm text-gray-700">
-                Sign Out
-              </PopoverContent>
-            </Popover>
+            <SignOutButton handleSignOut={handleSignOut} />
           </div>
         ) : (
           // Guest View
