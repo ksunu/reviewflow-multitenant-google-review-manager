@@ -23,7 +23,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Button } from '@/components/ui/button'
 import { APIProvider } from '@vis.gl/react-google-maps'
 import GoogleMaps from '@/components/map/GoogleMaps'
 import AddLocationModal from '@/app/dashboard/[workspaceId]/locations/_components/add-location-modal'
@@ -53,13 +52,20 @@ export default function WorkspaceLocationsClient({
 
   const handleSync = async (location: any) => {
     setSyncingId(location.id)
-    const res = await syncLocationReviews(location.id, workspaceId)
-    setSyncingId(null)
+    try {
+      const res = await syncLocationReviews(location.id, workspaceId)
 
-    if (res.success) {
-      router.refresh()
-    } else {
-      alert(`Sync failed: ${res.error}`)
+      if (res.success) {
+        router.refresh()
+      } else {
+        alert(`Sync failed: ${res.error}`)
+      }
+    } catch (error) {
+      alert(
+        `Sync failed: ${error instanceof Error ? error.message : 'Unexpected error'}`,
+      )
+    } finally {
+      setSyncingId(null)
     }
   }
 

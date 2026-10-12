@@ -93,6 +93,9 @@ export async function syncLocationReviews(
     }
 
     const googleReviews = data.result?.reviews || []
+    if (!Array.isArray(googleReviews)) {
+      throw new Error('Google Places returned an invalid reviews response.')
+    }
 
     if (!googleReviews.length) {
       const { error: syncTimestampError } = await supabase
@@ -112,22 +115,34 @@ export async function syncLocationReviews(
 
     // 7. Format and filter incoming Google Places reviews
     const reviewsToUpsert = googleReviews
-      .map((rev: any) => ({
-        workspace_id: workspaceId,
-        location_id: locationId,
-        author_name: rev.author_name || 'Anonymous',
-        author_url: rev.author_url || null,
-        profile_photo_url: rev.profile_photo_url || null,
-        rating: rev.rating,
-        review_text: rev.text || '',
-        review_date: rev.time
-          ? new Date(rev.time * 1000).toISOString()
-          : new Date().toISOString(),
-        relative_time_description: rev.relative_time_description || '',
-        source: 'google_places_api',
-        status: 'pending',
-        reply_status: 'unreplied',
-      }))
+      .map((rev: any) => {
+        if (
+          !Number.isInteger(rev.rating) ||
+          rev.rating < 1 ||
+          rev.rating > 5 ||
+          !Number.isSafeInteger(rev.time) ||
+          rev.time <= 0
+        ) {
+          throw new Error(
+            'Google Places returned a review with an invalid rating or timestamp.',
+          )
+        }
+
+        return {
+          workspace_id: workspaceId,
+          location_id: locationId,
+          author_name: rev.author_name || 'Anonymous',
+          author_url: rev.author_url || null,
+          profile_photo_url: rev.profile_photo_url || null,
+          rating: rev.rating,
+          review_text: rev.text || '',
+          review_date: new Date(rev.time * 1000).toISOString(),
+          relative_time_description: rev.relative_time_description || '',
+          source: 'google_places_api',
+          status: 'pending',
+          reply_status: 'unreplied',
+        }
+      })
       .filter((rev: any) => {
         const reviewTime = new Date(rev.review_date).getTime()
         // Incremental check: only process new reviews

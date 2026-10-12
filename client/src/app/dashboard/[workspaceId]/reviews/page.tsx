@@ -72,30 +72,36 @@ export default function WorkspaceReviewsPage() {
   }
   console.log(reviews)
   const handleSyncReviews = async () => {
-    setSyncing(true)
     // If a specific location is selected, sync that location; otherwise sync the first available or let action handle it
     const targetLocationId =
       selectedLocation !== 'all' ? selectedLocation : locations[0]?.id
 
     if (!targetLocationId) {
       toast.error('No locations available to sync.')
-      setSyncing(false)
       return
     }
 
-    const result = await syncLocationReviews(targetLocationId, workspaceId)
-    setSyncing(false)
+    setSyncing(true)
+    try {
+      const result = await syncLocationReviews(targetLocationId, workspaceId)
 
-    if (!result.success) {
-      toast.error(`Sync failed: ${result.error}`)
-    } else {
-      const count = result.count ?? 0
-      toast.success(
-        count === 0
-          ? 'Sync complete. No new reviews found.'
-          : `Synced ${count} new review${count === 1 ? '' : 's'}.`,
+      if (!result.success) {
+        toast.error(`Sync failed: ${result.error}`)
+      } else {
+        const count = result.count ?? 0
+        toast.success(
+          count === 0
+            ? 'Sync complete. No new reviews found.'
+            : `Synced ${count} new review${count === 1 ? '' : 's'}.`,
+        )
+        router.refresh()
+      }
+    } catch (error) {
+      toast.error(
+        `Sync failed: ${error instanceof Error ? error.message : 'Unexpected error'}`,
       )
-      router.refresh()
+    } finally {
+      setSyncing(false)
     }
   }
 

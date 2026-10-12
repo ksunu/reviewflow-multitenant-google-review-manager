@@ -56,6 +56,10 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ workspaceId: string }> },
 ) {
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  }
+
   try {
     const { workspaceId } = await params
     const access = await getWorkspaceAuthorization(workspaceId)
