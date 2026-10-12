@@ -1,14 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import {
-  Building2,
-  Plus,
-  Star,
-  MessageSquare,
-  AlertCircle,
-  ArrowRight,
-} from 'lucide-react'
+import { Building2, Plus, Star, MessageSquare } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -20,6 +13,9 @@ import {
 } from '@/components/ui/card'
 import { getCurrentUser } from '@/lib/supabase/user'
 import WorkspaceFilter from './_components/workspace-filter'
+import { RatingDistributionChart } from '@/components/stats/RatingDistributionChart'
+import { SentimentBreakdownChart } from '@/components/stats/SentimentBreakdownChart'
+import { RatingTrendChart } from '@/components/stats/RatingTrendChart'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -188,6 +184,23 @@ export default async function DashboardPage() {
           workspaces={workspaceMemberships}
           locationCountsMap={locationCountsMap}
         />
+      </div>
+      {/* Analytics Charts Grid */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
+        {/* Rating Distribution (3 Cols) */}
+        <div className="lg:col-span-3">
+          <RatingDistributionChart workspaces={workspaceMemberships} />
+        </div>
+
+        {/* Sentiment Breakdown (4 Cols) */}
+        <div className="lg:col-span-4">
+          <SentimentBreakdownChart workspaces={workspaceMemberships} />
+        </div>
+
+        {/* Full-Width Rating Trend Timeline (7 Cols) */}
+        <div className="lg:col-span-7">
+          <RatingTrendChart workspaces={workspaceMemberships} />
+        </div>
       </div>
     </div>
   )

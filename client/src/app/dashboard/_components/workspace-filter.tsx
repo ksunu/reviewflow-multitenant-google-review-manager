@@ -32,7 +32,7 @@ export default function WorkspaceFilter({
   locationCountsMap,
 }: WorkspaceFilterProps) {
   const [searchQuery, setSearchQuery] = useState('')
-
+  console.log(workspaces)
   // Filter workspaces based on input query (case-insensitive)
   const filteredWorkspaces = workspaces.filter((workspace) =>
     workspace.name.toLowerCase().includes(searchQuery.toLowerCase()),

@@ -57,7 +57,7 @@ export default function ReviewCard({ review, workspaceId }: any) {
                 />
               ))}
               <span className="text-xs text-muted-foreground ml-2 font-mono">
-                {new Date(review.created_at).toLocaleDateString()}
+                {new Date(review.review_date).toLocaleDateString()}
               </span>
             </div>
           </div>

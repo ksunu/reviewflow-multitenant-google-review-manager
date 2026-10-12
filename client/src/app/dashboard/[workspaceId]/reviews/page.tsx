@@ -132,7 +132,7 @@ export default function WorkspaceReviewsPage() {
           { count: 'exact' },
         )
         .eq('workspace_id', workspaceId)
-        .order('created_at', { ascending: false })
+        .order('review_date', { ascending: false })
         .range(from, to)
 
       if (selectedLocation !== 'all') {
