@@ -5,8 +5,8 @@ import { initReactI18next } from 'react-i18next'
 import LanguageDetector from 'i18next-browser-languagedetector'
 
 // Static imports for reliable bundling in Next.js
-import enCommon from '../../public/locales/en/common.json'
-import esCommon from '../../public/locales/es/common.json'
+import enCommon from '../../../public/locales/en/common.json'
+import esCommon from '../../../public/locales/es/common.json'
 
 i18n
   .use(LanguageDetector)

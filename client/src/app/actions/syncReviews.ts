@@ -35,17 +35,10 @@ export async function syncLocationReviews(
       throw new Error('Location not found or missing Google Place ID.')
     }
 
-    // 3. Fetch Workspace tier details
-    const { data: workspace } = await supabase
-      .from('workspaces')
-      .select('subscription_tier, language')
-      .eq('id', workspaceId)
-      .single()
-
-    const isPro = workspace?.subscription_tier === 'pro'
-
-    // 4. Cooldown Guard for Free Tier (once every 24 hours)
-    if (!isPro && location?.last_synced_at) {
+    // The current workspaces schema has no subscription_tier or language columns,
+    // so syncs use the available free-tier cooldown for every workspace.
+    // 3. Cooldown Guard (once every 24 hours)
+    if (location.last_synced_at) {
       const lastSync = new Date(location.last_synced_at).getTime()
       const hoursSinceLastSync = (Date.now() - lastSync) / (1000 * 60 * 60)
 
