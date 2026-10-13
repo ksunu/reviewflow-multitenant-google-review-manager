@@ -139,7 +139,7 @@ export function SentimentBreakdownChart({
   ].filter((item) => item.value > 0) // Hide empty segments to keep the chart clean
 
   return (
-    <Card className="border bg-card/50 backdrop-blur-sm">
+    <Card className="overflow-hidden border-border bg-card shadow-sm">
       {loading ? (
         <div className="flex h-[340px] items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -169,8 +169,9 @@ export function SentimentBreakdownChart({
                     cy="50%"
                     innerRadius={65}
                     outerRadius={95}
-                    paddingAngle={4}
-                    stroke="none"
+                    paddingAngle={3}
+                    stroke="var(--card)"
+                    strokeWidth={3}
                   >
                     {chartData.map((entry) => (
                       <Cell

@@ -48,7 +48,7 @@ export function RatingDistributionChart({
   )
 
   return (
-    <Card className="border bg-card/50 backdrop-blur-sm">
+    <Card className="overflow-hidden border-border bg-card shadow-sm">
       {loading ? (
         <div className="flex h-[340px] items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -71,17 +71,20 @@ export function RatingDistributionChart({
                 {/* Background Grid Lines */}
                 <CartesianGrid
                   horizontal={false}
-                  stroke="hsl(var(--border) / 0.5)"
+                  vertical
+                  stroke="var(--border)"
                   strokeDasharray="3 3"
                 />
 
                 {/* X Axis */}
                 <XAxis
                   type="number"
-                  stroke="hsl(var(--muted-foreground) / 0.6)"
+                  stroke="var(--muted-foreground)"
                   fontSize={12}
-                  tickLine={true}
-                  axisLine={true}
+                  tickLine={{ stroke: 'var(--border)' }}
+                  axisLine={{ stroke: 'var(--border)' }}
+                  tick={{ fill: 'var(--muted-foreground)' }}
+                  tickMargin={8}
                   allowDecimals={false}
                 />
 
@@ -89,18 +92,20 @@ export function RatingDistributionChart({
                 <YAxis
                   type="category"
                   dataKey="rating"
-                  stroke="hsl(var(--muted-foreground) / 0.8)"
+                  stroke="var(--border)"
                   fontSize={13}
                   tickLine={false}
-                  axisLine={true}
+                  axisLine={{ stroke: 'var(--border)' }}
+                  tickMargin={8}
                   tick={({ x, y, payload }) => (
                     <g transform={`translate(${x},${y})`}>
                       <text
                         x={-24}
                         y={4}
                         textAnchor="end"
-                        fill="currentColor"
-                        className="text-xs font-semibold fill-foreground"
+                        fill="var(--foreground)"
+                        fontSize={12}
+                        fontWeight={600}
                       >
                         {payload.value}
                       </text>
@@ -118,7 +123,7 @@ export function RatingDistributionChart({
 
                 {/* Tooltip */}
                 <Tooltip
-                  cursor={{ fill: 'hsl(var(--muted) / 0.25)' }}
+                  cursor={{ fill: 'var(--muted)', fillOpacity: 0.45 }}
                   content={({ active, payload }) => {
                     if (active && payload && payload.length) {
                       const dataItem = payload[0]

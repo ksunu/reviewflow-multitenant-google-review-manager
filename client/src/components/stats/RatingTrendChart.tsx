@@ -119,7 +119,7 @@ export function RatingTrendChart({
   }, [fetchTrendData])
 
   return (
-    <Card className="border bg-card/50 backdrop-blur-sm shadow-sm">
+    <Card className="overflow-hidden border-border bg-card shadow-sm">
       {loading ? (
         <div className="flex h-[340px] items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -193,33 +193,37 @@ export function RatingTrendChart({
 
                   <CartesianGrid
                     strokeDasharray="3 3"
-                    stroke="hsl(var(--border) / 0.5)"
+                    stroke="var(--border)"
                   />
 
                   <XAxis
                     dataKey="formattedDate"
-                    stroke="hsl(var(--muted-foreground) / 0.7)"
+                    stroke="var(--border)"
                     fontSize={12}
                     tickLine={false}
-                    axisLine={true}
+                    axisLine={{ stroke: 'var(--border)' }}
+                    tick={{ fill: 'var(--muted-foreground)' }}
+                    tickMargin={8}
                   />
 
                   {/* Golden Star Y Axis */}
                   <YAxis
                     domain={[1, 5]}
                     ticks={[1, 2, 3, 4, 5]}
-                    stroke="hsl(var(--muted-foreground) / 0.7)"
+                    stroke="var(--border)"
                     fontSize={12}
                     tickLine={false}
-                    axisLine={true}
+                    axisLine={{ stroke: 'var(--border)' }}
+                    tickMargin={8}
                     tick={({ x, y, payload }) => (
                       <g transform={`translate(${x},${y})`}>
                         <text
                           x={-24}
                           y={4}
                           textAnchor="end"
-                          fill="currentColor"
-                          className="text-xs font-semibold fill-foreground"
+                          fill="var(--foreground)"
+                          fontSize={12}
+                          fontWeight={600}
                         >
                           {payload.value}
                         </text>
@@ -276,6 +280,12 @@ export function RatingTrendChart({
                     filter="url(#glow)"
                     fillOpacity={1}
                     fill="url(#trendColorGradient)"
+                    dot={{
+                      r: 3,
+                      fill: '#10b981',
+                      stroke: 'var(--card)',
+                      strokeWidth: 2,
+                    }}
                     activeDot={{
                       r: 6,
                       fill: '#10b981',
