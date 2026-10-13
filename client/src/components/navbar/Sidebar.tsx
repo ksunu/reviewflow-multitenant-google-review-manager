@@ -113,23 +113,24 @@ export default function AppSidebar({
         <SidebarMenu>
           <SidebarMenuItem>
             <DropdownMenu>
-              <DropdownMenuTrigger asChild={false}>
-                <div
-                  role="button"
-                  tabIndex={0}
-                  className="flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-none hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-[[data-sidebar=menu-action]]/menu-item:pr-8 aria-describedby:hidden aria-disabled:pointer-events-none aria-disabled:opacity-55 data-[active=true]:bg-sidebar-accent data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground h-12 cursor-pointer"
-                >
-                  <Sliders className="h-4 w-4 shrink-0 text-muted-foreground" />
-                  <div className="flex flex-col text-left truncate leading-tight group-data-[collapsible=icon]:hidden">
-                    <span className="font-medium text-xs text-foreground truncate">
-                      {user?.email || 'User Account'}
-                    </span>
-                    <span className="text-[10px] text-muted-foreground">
-                      Configure
-                    </span>
-                  </div>
-                </div>
-              </DropdownMenuTrigger>
+              <DropdownMenuTrigger
+                render={
+                  <Button
+                    variant="ghost"
+                    className="h-12 w-full justify-start overflow-hidden rounded-md p-2 text-left text-sm hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground group-has-[[data-sidebar=menu-action]]/menu-item:pr-8 data-[active=true]:bg-sidebar-accent data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                  >
+                    <Sliders className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <div className="flex flex-col text-left truncate leading-tight group-data-[collapsible=icon]:hidden">
+                      <span className="font-medium text-xs text-foreground truncate">
+                        {user?.email || 'User Account'}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground">
+                        Configure
+                      </span>
+                    </div>
+                  </Button>
+                }
+              />
 
               <DropdownMenuContent
                 side="right"

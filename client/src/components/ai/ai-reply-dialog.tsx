@@ -131,19 +131,17 @@ export function AIReplyDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      {/* FIXED: Added 'asChild' to prevent <button> inside <button> hydration error */}
-      <DialogTrigger asChild>
-        <Button
-          asChild // <--- ADD THIS PROP
-          variant="outline"
-          size="sm"
-          className="gap-1.5 text-xs h-8 border-primary/30 hover:bg-primary/5 text-primary"
-        >
-          <span>
+      <DialogTrigger
+        render={
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5 text-xs h-8 border-primary/30 hover:bg-primary/5 text-primary"
+          >
             <Sparkles className="w-3.5 h-3.5" /> AI Reply
-          </span>
-        </Button>
-      </DialogTrigger>
+          </Button>
+        }
+      />
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
