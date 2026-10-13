@@ -1,7 +1,7 @@
 // src/components/navbar/DashboardHeader.tsx
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   useRouter,
   usePathname,
@@ -9,6 +9,13 @@ import {
   useSearchParams,
 } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 
 export default function DashboardHeader() {
   const router = useRouter()
@@ -63,8 +70,9 @@ export default function DashboardHeader() {
     loadHeaderData()
   }, [activeWorkspaceId])
 
-  const handleWorkspaceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newWsId = e.target.value
+  const handleWorkspaceChange = (newWsId: string | null) => {
+    if (!newWsId) return
+
     const newPathname = pathname.replace(
       `/dashboard/${activeWorkspaceId}`,
       `/dashboard/${newWsId}`,
@@ -72,8 +80,9 @@ export default function DashboardHeader() {
     router.push(newPathname)
   }
 
-  const handleLocationChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newLocId = e.target.value
+  const handleLocationChange = (newLocId: string | null) => {
+    if (!newLocId) return
+
     const search = new URLSearchParams(searchParams.toString())
 
     if (newLocId === 'all') {
@@ -86,45 +95,56 @@ export default function DashboardHeader() {
   }
 
   return (
-    <div>
+    <div className="min-w-0">
       {/* Conditionally render the dropdown selectors ONLY on the root workspace dashboard */}
       {isInWorkspace && !loading && (
-        <div className="flex items-center space-x-3 animate-fade-in">
+        <div className="flex min-w-0 items-center gap-1 sm:gap-3 animate-fade-in">
           {/* Workspace Dropdown */}
-          <div className="flex items-center space-x-1.5">
+          <div className="flex min-w-0 items-center gap-1.5">
             <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider hidden sm:inline">
               Org:
             </span>
-            <select
+            <Select
               value={activeWorkspaceId || ''}
-              onChange={handleWorkspaceChange}
-              className="bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block px-3 py-1.5 font-semibold cursor-pointer"
+              onValueChange={handleWorkspaceChange}
             >
-              {workspaces.map((ws) => (
-                <option key={ws.id} value={ws.id}>
-                  {ws.name}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="w-[5.5rem] min-w-0 border-gray-200 bg-gray-50 px-2 text-xs font-semibold text-gray-900 focus-visible:border-indigo-500 focus-visible:ring-indigo-500 min-[380px]:w-[6.5rem] sm:w-[10rem] sm:px-3 sm:text-sm lg:w-[12rem]">
+                <SelectValue placeholder="Workspace" />
+              </SelectTrigger>
+              <SelectContent>
+                {workspaces.map((ws) => (
+                  <SelectItem key={ws.id} value={ws.id}>
+                    {ws.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Location Dropdown */}
-          <div className="flex items-center space-x-1.5">
+          <div className="flex min-w-0 items-center gap-1.5">
             <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider hidden sm:inline">
               Store:
             </span>
-            <select
+            <Select
               value={activeLocationId || 'all'}
-              onChange={handleLocationChange}
-              className="bg-white border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block px-3 py-1.5 font-medium cursor-pointer"
+              onValueChange={handleLocationChange}
             >
-              <option value="all">🌐 All Locations (Aggregated)</option>
-              {locations.map((loc) => (
-                <option key={loc.id} value={loc.id}>
-                  {loc.name} {loc.business_type ? `(${loc.business_type})` : ''}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="w-[6.5rem] min-w-0 border-gray-200 bg-white px-2 text-xs font-medium text-gray-900 focus-visible:border-indigo-500 focus-visible:ring-indigo-500 min-[380px]:w-[7.5rem] sm:w-[11rem] sm:px-3 sm:text-sm lg:w-[14rem]">
+                <SelectValue placeholder="Location" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">
+                  🌐 All Locations (Aggregated)
+                </SelectItem>
+                {locations.map((loc) => (
+                  <SelectItem key={loc.id} value={loc.id}>
+                    {loc.name}{' '}
+                    {loc.business_type ? `(${loc.business_type})` : ''}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
       )}
