@@ -152,8 +152,8 @@ export default function WorkspaceReviewsPage() {
   }, [workspaceId, page, pageSize, selectedLocation, selectedStatus])
 
   return (
-    // Viewport-locked flex container ensuring full width and fixed header/footer behavior
-    <div className="flex flex-col h-[calc(100vh-6rem)] pb-4 w-full overflow-hidden">
+    // Fill the dashboard main area so pagination stays visible below the review scroller.
+    <div className="flex min-h-0 flex-1 flex-col pb-4 w-full overflow-hidden">
       {/* Fixed Header & Filters */}
       <div className="shrink-0 flex flex-col md:flex-row md:items-center md:justify-between gap-4 w-full pb-4 border-b">
         <div>

@@ -48,7 +48,7 @@ export default async function WorkspaceLayout({
           user={user}
         />
         <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-          <main className="min-h-0 flex-1 overflow-y-auto p-4 md:p-8">
+          <main className="flex min-h-0 flex-1 flex-col overflow-y-auto p-4 md:p-8">
             <div className="mb-3 md:hidden">
               <SidebarTrigger aria-label="Open workspace navigation" />
             </div>

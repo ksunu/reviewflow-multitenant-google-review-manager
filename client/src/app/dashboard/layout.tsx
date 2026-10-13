@@ -18,7 +18,7 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="flex h-dvh flex-col overflow-hidden bg-background">
       <header className="bg-white border-b sticky top-0 z-30 shrink-0">
         <div className="px-6 h-16 flex items-center justify-between">
           <Link

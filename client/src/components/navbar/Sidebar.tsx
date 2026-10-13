@@ -70,7 +70,7 @@ export default function AppSidebar({
   return (
     <Sidebar
       collapsible="icon"
-      className="group/sidebar top-16 h-[calc(100vh-4rem)] border-r"
+      className="group/sidebar top-16 h-[calc(100dvh-4rem)] border-r"
     >
       <SidebarContent>
         <SidebarGroup>
