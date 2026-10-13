@@ -30,6 +30,18 @@ export default function DashboardHeader() {
   const [locations, setLocations] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
+  const activeWorkspaceName = workspaces.find(
+    (workspace) => workspace.id === activeWorkspaceId,
+  )?.name
+  const activeLocation = locations.find(
+    (location) => location.id === activeLocationId,
+  )
+  const activeLocationName = activeLocationId
+    ? activeLocation
+      ? `${activeLocation.name}${activeLocation.business_type ? ` (${activeLocation.business_type})` : ''}`
+      : 'Location'
+    : '🌐 All Locations (Aggregated)'
+
   const supabase = createClient()
 
   // Check if we are strictly on the base workspace dashboard (e.g. /dashboard/ws-123)
@@ -109,7 +121,9 @@ export default function DashboardHeader() {
               onValueChange={handleWorkspaceChange}
             >
               <SelectTrigger className="w-[5.5rem] min-w-0 border-gray-200 bg-gray-50 px-2 text-xs font-semibold text-gray-900 focus-visible:border-indigo-500 focus-visible:ring-indigo-500 min-[380px]:w-[6.5rem] sm:w-[10rem] sm:px-3 sm:text-sm lg:w-[12rem]">
-                <SelectValue placeholder="Workspace" />
+                <SelectValue>
+                  {activeWorkspaceName || 'Workspace'}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {workspaces.map((ws) => (
@@ -131,7 +145,7 @@ export default function DashboardHeader() {
               onValueChange={handleLocationChange}
             >
               <SelectTrigger className="w-[6.5rem] min-w-0 border-gray-200 bg-white px-2 text-xs font-medium text-gray-900 focus-visible:border-indigo-500 focus-visible:ring-indigo-500 min-[380px]:w-[7.5rem] sm:w-[11rem] sm:px-3 sm:text-sm lg:w-[14rem]">
-                <SelectValue placeholder="Location" />
+                <SelectValue>{activeLocationName}</SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">
