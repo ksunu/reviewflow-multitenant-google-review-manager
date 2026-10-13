@@ -98,7 +98,7 @@ export default function WorkspaceLocationsClient({
     return (
       <Card
         key={loc.id}
-        className="hover:border-primary/50 transition-colors flex flex-col justify-between h-full"
+        className="flex h-full flex-col justify-between border border-border ring-0 transition-colors hover:border-primary/50"
       >
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -190,30 +190,32 @@ export default function WorkspaceLocationsClient({
             actionLabel="Add First Location"
             onAction={() => setIsOpen(true)}
           />
-        ) : locations?.length <= 3 ? (
+        ) : locations && locations.length <= 3 ? (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
             {locations?.map((loc) => renderLocationCard(loc))}
           </div>
         ) : (
-          <div className="px-6 sm:px-8 md:px-12">
+          <div className="relative w-full px-8 md:px-4">
             <Carousel opts={{ align: 'start', loop: false }} className="w-full">
               <CarouselContent className="-ml-4">
                 {locations?.map((loc) => (
                   <CarouselItem
                     key={loc.id}
-                    className="pl-4 sm:basis-1/2 lg:basis-1/3"
+                    className="py-2 pl-4 md:basis-1/2 lg:basis-1/3"
                   >
                     {renderLocationCard(loc)}
                   </CarouselItem>
                 ))}
               </CarouselContent>
-              <CarouselPrevious />
-              <CarouselNext />
+              <CarouselPrevious className="-left-2 md:-left-4 h-8 w-8 cursor-pointer" />
+              <CarouselNext className="-right-2 md:-right-4 h-8 w-8 cursor-pointer" />
             </Carousel>
           </div>
         )}
 
-        {locations?.length > 0 && <GoogleMaps locations={locations} />}
+        {locations && locations?.length > 0 && (
+          <GoogleMaps locations={locations} />
+        )}
       </div>
       <EditLocationModal
         workspaceId={workspaceId}
