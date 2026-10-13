@@ -142,14 +142,14 @@ export default function WorkspaceLocationsClient({
           <button
             onClick={() => handleSync(loc)}
             disabled={isSyncing || !loc.google_place_id}
-            className="w-full cursor-pointer rounded-lg bg-gray-900 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-gray-800 disabled:opacity-50 sm:w-auto"
+            className="w-full cursor-pointer rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50 sm:w-auto"
           >
             {isSyncing ? 'Syncing...' : '🔄 Sync Reviews'}
           </button>
 
           <a
             href={`/dashboard/${workspaceId}/reviews?locationId=${loc.id}`}
-            className="inline-flex min-h-8 items-center justify-center text-center text-xs font-medium text-indigo-600 hover:text-indigo-800 sm:text-right"
+            className="inline-flex min-h-8 items-center justify-center text-center text-xs font-medium text-primary hover:text-primary/80 sm:text-right"
           >
             View Reviews →
           </a>

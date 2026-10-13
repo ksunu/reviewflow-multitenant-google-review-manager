@@ -201,7 +201,7 @@ export default function AddLocationModal({
                 onChange={(e) => setAddress(e.target.value)}
               />
               {googlePlaceId && (
-                <p className="text-xs text-green-600 font-medium">
+                <p className="text-xs font-medium text-emerald-400">
                   ✓ Valid Google Place verified & linked
                 </p>
               )}

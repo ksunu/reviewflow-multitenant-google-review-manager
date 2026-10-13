@@ -10,7 +10,7 @@ export default function ReviewCard({ review, workspaceId }: any) {
         return (
           <Badge
             variant="outline"
-            className="bg-green-500/10 text-green-600 border-green-200 flex items-center gap-1"
+            className="flex items-center gap-1 border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
           >
             <CheckCircle2 className="w-3 h-3" /> Replied
           </Badge>
@@ -19,7 +19,7 @@ export default function ReviewCard({ review, workspaceId }: any) {
         return (
           <Badge
             variant="outline"
-            className="bg-red-500/10 text-red-600 border-red-200 flex items-center gap-1"
+            className="flex items-center gap-1 border-red-500/30 bg-red-500/10 text-red-400"
           >
             <AlertCircle className="w-3 h-3" /> Flagged
           </Badge>
@@ -28,7 +28,7 @@ export default function ReviewCard({ review, workspaceId }: any) {
         return (
           <Badge
             variant="outline"
-            className="bg-yellow-500/10 text-yellow-600 border-yellow-200 flex items-center gap-1"
+            className="flex items-center gap-1 border-amber-500/30 bg-amber-500/10 text-amber-300"
           >
             <Clock className="w-3 h-3" /> Pending
           </Badge>

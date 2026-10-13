@@ -24,7 +24,7 @@ export function SignOutButton({ handleSignOut }: any) {
           </Button>
         }
       />
-      <PopoverContent className="w-20 d-flex justify-center items-center text-sm text-gray-700">
+      <PopoverContent className="w-20 d-flex justify-center items-center text-sm text-foreground">
         {t('auth.logout')}
       </PopoverContent>
     </Popover>

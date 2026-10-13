@@ -193,7 +193,7 @@ export default function WorkspaceOverviewPage() {
             <Clock className="w-4 h-4 text-orange-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-orange-600">
+            <div className="text-2xl font-bold text-orange-300">
               {stats.pendingReviews}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
@@ -207,7 +207,7 @@ export default function WorkspaceOverviewPage() {
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Managed Locations
             </CardTitle>
-            <Store className="w-4 h-4 text-blue-500" />
+            <Store className="w-4 h-4 text-sky-400" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalLocations}</div>
@@ -266,7 +266,7 @@ export default function WorkspaceOverviewPage() {
           <CardContent className="flex flex-col justify-center h-[260px] space-y-6">
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="font-medium text-emerald-600">
+                <span className="font-medium text-emerald-400">
                   Resolved / Replied
                 </span>
                 <span className="font-bold">{stats.resolvedReviews}</span>
@@ -277,13 +277,13 @@ export default function WorkspaceOverviewPage() {
                     ? (stats.resolvedReviews / stats.totalReviews) * 100
                     : 0
                 }
-                className="h-3 bg-emerald-100"
+                className="h-3 bg-emerald-500/15"
               />
             </div>
 
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="font-medium text-orange-600">
+                <span className="font-medium text-orange-300">
                   Pending Review
                 </span>
                 <span className="font-bold">{stats.pendingReviews}</span>
@@ -294,7 +294,7 @@ export default function WorkspaceOverviewPage() {
                     ? (stats.pendingReviews / stats.totalReviews) * 100
                     : 0
                 }
-                className="h-3 bg-orange-100"
+                className="h-3 bg-orange-500/15"
               />
             </div>
           </CardContent>

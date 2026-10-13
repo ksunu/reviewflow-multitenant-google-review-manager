@@ -132,14 +132,14 @@ export default function DashboardHeader() {
         <div className="flex min-w-0 items-center gap-1 sm:gap-3 animate-fade-in">
           {/* Workspace Dropdown */}
           <div className="flex min-w-0 items-center gap-1.5">
-            <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider hidden sm:inline">
+            <span className="hidden text-xs font-semibold uppercase tracking-wider text-muted-foreground sm:inline">
               Org:
             </span>
             <Select
               value={activeWorkspaceId || ''}
               onValueChange={handleWorkspaceChange}
             >
-              <SelectTrigger className="w-[5.5rem] min-w-0 border-gray-200 bg-gray-50 px-2 text-xs font-semibold text-gray-900 focus-visible:border-indigo-500 focus-visible:ring-indigo-500 min-[380px]:w-[6.5rem] sm:w-[10rem] sm:px-3 sm:text-sm lg:w-[12rem]">
+              <SelectTrigger className="w-[5.5rem] min-w-0 border-border bg-secondary px-2 text-xs font-semibold text-foreground focus-visible:border-primary focus-visible:ring-primary min-[380px]:w-[6.5rem] sm:w-[10rem] sm:px-3 sm:text-sm lg:w-[12rem]">
                 <SelectValue>
                   {activeWorkspaceName || 'Workspace'}
                 </SelectValue>
@@ -156,14 +156,14 @@ export default function DashboardHeader() {
 
           {/* Location Dropdown */}
           <div className="flex min-w-0 items-center gap-1.5">
-            <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider hidden sm:inline">
+            <span className="hidden text-xs font-semibold uppercase tracking-wider text-muted-foreground sm:inline">
               Store:
             </span>
             <Select
               value={activeLocationId || 'all'}
               onValueChange={handleLocationChange}
             >
-              <SelectTrigger className="w-[6.5rem] min-w-0 border-gray-200 bg-white px-2 text-xs font-medium text-gray-900 focus-visible:border-indigo-500 focus-visible:ring-indigo-500 min-[380px]:w-[7.5rem] sm:w-[11rem] sm:px-3 sm:text-sm lg:w-[14rem]">
+              <SelectTrigger className="w-[6.5rem] min-w-0 border-border bg-card px-2 text-xs font-medium text-foreground focus-visible:border-primary focus-visible:ring-primary min-[380px]:w-[7.5rem] sm:w-[11rem] sm:px-3 sm:text-sm lg:w-[14rem]">
                 <SelectValue>{activeLocationName}</SelectValue>
               </SelectTrigger>
               <SelectContent>

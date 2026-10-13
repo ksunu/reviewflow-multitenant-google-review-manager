@@ -20,7 +20,7 @@ export default function LandingPage() {
 
   return (
     <ClientOnlyWrapper>
-      <div className="min-h-screen flex flex-col bg-white text-gray-900">
+      <div className="min-h-screen flex flex-col bg-background text-foreground">
         <NavigationHeader
           onOpenAuth={(mode) => {
             setAuthMode(mode)
@@ -29,30 +29,30 @@ export default function LandingPage() {
         />
 
         {/* Hero Section */}
-        <section className="flex-1 flex flex-col items-center justify-center text-center px-6 py-20 max-w-4xl mx-auto space-y-6">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-50 text-purple-700 text-xs font-semibold tracking-wide uppercase">
+        <section className="relative flex-1 flex flex-col items-center justify-center text-center px-6 py-20 max-w-4xl mx-auto space-y-6">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold tracking-wide uppercase">
             ✨ {t('hero.badge')}
           </div>
 
-          <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-gray-900 leading-tight">
+          <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-foreground leading-tight">
             {t('hero.title1')} <br />
-            <span className="text-purple-600">{t('hero.title2')}</span>
+            <span className="text-primary">{t('hero.title2')}</span>
           </h1>
 
-          <p className="text-lg text-gray-600 max-w-2xl">
+          <p className="text-lg text-muted-foreground max-w-2xl">
             {t('hero.subtitle')}
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3 pt-4">
             <button
               onClick={() => openAuth('register')}
-              className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition shadow-md"
+              className="px-6 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-lg transition shadow-md shadow-primary/20"
             >
               {t('hero.startTrial')}
             </button>
             <Link
               href="/dashboard"
-              className="px-6 py-3 border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium rounded-lg transition"
+              className="px-6 py-3 border border-border hover:bg-accent text-foreground font-medium rounded-lg transition"
             >
               {t('hero.viewDashboard')}
             </Link>
@@ -60,50 +60,50 @@ export default function LandingPage() {
         </section>
 
         {/* Value Proposition Grid */}
-        <section className="bg-gray-50 border-t py-16 px-6">
+        <section className="bg-secondary/50 border-t border-border py-16 px-6">
           <div className="max-w-6xl mx-auto space-y-12">
             <div className="text-center space-y-2">
               <h2 className="text-2xl font-bold tracking-tight">
                 {t('features.title')}
               </h2>
-              <p className="text-sm text-gray-500">{t('features.subtitle')}</p>
+              <p className="text-sm text-muted-foreground">{t('features.subtitle')}</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div className="p-6 bg-white border rounded-xl shadow-sm space-y-3">
-                <div className="w-10 h-10 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center font-bold">
+              <div className="p-6 bg-card border border-border rounded-xl shadow-lg shadow-black/10 space-y-3">
+                <div className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold">
                   🚀
                 </div>
                 <h3 className="font-semibold text-lg">
                   {t('features.f1Title')}
                 </h3>
-                <p className="text-sm text-gray-600">{t('features.f1Desc')}</p>
+                <p className="text-sm text-muted-foreground">{t('features.f1Desc')}</p>
               </div>
 
-              <div className="p-6 bg-white border rounded-xl shadow-sm space-y-3">
-                <div className="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center font-bold">
+              <div className="p-6 bg-card border border-border rounded-xl shadow-lg shadow-black/10 space-y-3">
+                <div className="w-10 h-10 rounded-lg bg-sky-400/10 text-sky-300 flex items-center justify-center font-bold">
                   ⚡
                 </div>
                 <h3 className="font-semibold text-lg">
                   {t('features.f2Title')}
                 </h3>
-                <p className="text-sm text-gray-600">{t('features.f2Desc')}</p>
+                <p className="text-sm text-muted-foreground">{t('features.f2Desc')}</p>
               </div>
 
-              <div className="p-6 bg-white border rounded-xl shadow-sm space-y-3">
-                <div className="w-10 h-10 rounded-lg bg-green-100 text-green-600 flex items-center justify-center font-bold">
+              <div className="p-6 bg-card border border-border rounded-xl shadow-lg shadow-black/10 space-y-3">
+                <div className="w-10 h-10 rounded-lg bg-emerald-400/10 text-emerald-300 flex items-center justify-center font-bold">
                   ✍️
                 </div>
                 <h3 className="font-semibold text-lg">
                   {t('features.f3Title')}
                 </h3>
-                <p className="text-sm text-gray-600">{t('features.f3Desc')}</p>
+                <p className="text-sm text-muted-foreground">{t('features.f3Desc')}</p>
               </div>
             </div>
           </div>
         </section>
 
-        <footer className="border-t py-8 px-6 text-center text-xs text-gray-400">
+        <footer className="border-t border-border py-8 px-6 text-center text-xs text-muted-foreground">
           &copy; {new Date().getFullYear()} Review Manager SaaS. All rights
           reserved.
         </footer>

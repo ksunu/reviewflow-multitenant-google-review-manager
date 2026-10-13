@@ -216,7 +216,7 @@ export function AIReplyDialog({
           {generatedReply && (
             <div className="space-y-2 pt-2 border-t">
               <div className="flex items-center justify-between">
-                <Label className="text-xs font-medium text-emerald-600">
+                <Label className="text-xs font-medium text-emerald-400">
                   Generated Draft (Editable)
                 </Label>
                 <Button
@@ -226,7 +226,7 @@ export function AIReplyDialog({
                   className="h-7 text-xs gap-1"
                 >
                   {copied ? (
-                    <Check className="w-3.5 h-3.5 text-emerald-600" />
+                    <Check className="w-3.5 h-3.5 text-emerald-400" />
                   ) : (
                     <Copy className="w-3.5 h-3.5" />
                   )}

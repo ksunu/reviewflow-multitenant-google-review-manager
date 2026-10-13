@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from 'next/font/google'
 import { I18nProvider } from '@/components/providers/I18nProvider'
 import { Toaster } from '@/components/ui/sonner'
 import { QueryProvider } from '@/components/providers/query-provider'
+import { ThemeProvider } from '@/components/providers/theme-provider'
 import './globals.css'
 
 const geistSans = Geist({
@@ -27,14 +28,19 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className="h-full">
-      <body className="min-h-full flex flex-col" suppressHydrationWarning>
-        <I18nProvider>
-          <QueryProvider>
-            {children}
-            <Toaster position="bottom-right" richColors />
-          </QueryProvider>
-        </I18nProvider>
+    <html lang="en" className="h-full" suppressHydrationWarning>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} min-h-full flex flex-col`}
+        suppressHydrationWarning
+      >
+        <ThemeProvider>
+          <I18nProvider>
+            <QueryProvider>
+              {children}
+              <Toaster position="bottom-right" richColors />
+            </QueryProvider>
+          </I18nProvider>
+        </ThemeProvider>
       </body>
     </html>
   )

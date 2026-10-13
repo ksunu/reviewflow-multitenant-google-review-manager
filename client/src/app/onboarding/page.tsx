@@ -2,23 +2,23 @@ import { completeOnboarding } from './actions'
 
 export default function OnboardingPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="max-w-md w-full bg-white rounded-xl shadow-md p-8 space-y-6 border">
+    <div className="min-h-screen flex items-center justify-center bg-background px-4">
+      <div className="max-w-md w-full bg-card text-card-foreground rounded-xl shadow-xl shadow-black/20 p-8 space-y-6 border border-border">
         <div className="space-y-2 text-center">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-purple-100 text-purple-600 font-bold mb-2">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 text-primary font-bold mb-2">
             🏢
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">
             Setup Your Workspace
           </h1>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-muted-foreground">
             Tell us about your business to configure your review management hub.
           </p>
         </div>
 
         <form action={completeOnboarding} className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">
+            <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1">
               Business / Brand Name
             </label>
             <input
@@ -26,12 +26,12 @@ export default function OnboardingPage() {
               type="text"
               required
               placeholder="e.g. Apex Fitness Chain"
-              className="w-full px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-purple-500 focus:outline-none"
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">
+            <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1">
               First Location Name
             </label>
             <input
@@ -39,12 +39,12 @@ export default function OnboardingPage() {
               type="text"
               required
               placeholder="e.g. Gangnam Branch"
-              className="w-full px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-purple-500 focus:outline-none"
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
 
           {/* <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">
+            <label className="text-sm font-medium text-muted-foreground">
               Google Business Name or Place ID
             </label>
             <input
@@ -52,14 +52,14 @@ export default function OnboardingPage() {
               placeholder="e.g. ChIJN1t_tDeuEmsRUsoyG83frY4"
               className="w-full px-3 py-2 border rounded-md text-sm"
             />
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-muted-foreground">
               Optional: Links your workspace directly to Google Maps data.
             </p>
           </div> */}
 
           <button
             type="submit"
-            className="w-full py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-md transition shadow-sm text-sm"
+            className="w-full py-2.5 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-md transition shadow-sm shadow-primary/20 text-sm"
           >
             Complete Setup & Launch Dashboard →
           </button>

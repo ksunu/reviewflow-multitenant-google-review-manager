@@ -67,30 +67,30 @@ export function AuthModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 space-y-6 relative">
+      <div className="relative w-full max-w-md space-y-6 rounded-xl border border-border bg-card p-6 text-card-foreground shadow-2xl shadow-black/30">
         <div className="flex justify-between items-center">
-          <h2 className="text-xl font-bold text-gray-900">
+          <h2 className="text-xl font-bold text-foreground">
             {mode === 'login'
               ? 'Welcome Back to Review Manager'
               : 'Start Your Free AI Journey'}
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-sm font-semibold"
+            className="text-muted-foreground hover:text-foreground text-sm font-semibold"
           >
             ✕
           </button>
         </div>
 
         {errorMsg && (
-          <div className="p-3 text-xs bg-red-50 text-red-600 rounded-md border border-red-200">
+          <div className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive">
             {errorMsg}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">
+            <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1">
               {t('auth.emailAddress')}
             </label>
             <input
@@ -99,12 +99,12 @@ export function AuthModal({
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="manager@yourbusiness.com"
-              className="w-full px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-purple-500 focus:outline-none"
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">
+            <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1">
               {t('auth.password')}
             </label>
             <input
@@ -113,14 +113,14 @@ export function AuthModal({
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="w-full px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-purple-500 focus:outline-none"
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
 
           <Button
             type="submit"
             disabled={loading}
-            className="w-full py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-md transition shadow-sm text-sm disabled:opacity-50"
+            className="w-full rounded-md bg-primary py-2.5 text-sm font-medium text-primary-foreground shadow-sm shadow-primary/20 transition hover:bg-primary/90 disabled:opacity-50"
           >
             {loading
               ? t('auth.processing')
@@ -130,13 +130,13 @@ export function AuthModal({
           </Button>
         </form>
 
-        <div className="text-center text-xs text-gray-500 pt-2 border-t">
+        <div className="border-t border-border pt-2 text-center text-xs text-muted-foreground">
           {mode === 'login' ? (
             <p>
               Don&apos;t have an account?{' '}
               <button
                 onClick={() => setMode('register')}
-                className="text-purple-600 font-semibold hover:underline cursor-pointer"
+                className="cursor-pointer font-semibold text-primary hover:underline"
               >
                 {t('auth.register')}
               </button>
@@ -146,7 +146,7 @@ export function AuthModal({
               Already have an account?{' '}
               <button
                 onClick={() => setMode('login')}
-                className="text-purple-600 font-semibold hover:underline cursor-pointer"
+                className="cursor-pointer font-semibold text-primary hover:underline"
               >
                 {t('auth.login')}
               </button>

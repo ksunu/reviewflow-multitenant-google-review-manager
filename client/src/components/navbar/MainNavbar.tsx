@@ -9,6 +9,7 @@ import { LanguageSwitcher } from '@/components/language/LanguageSwitcher'
 import { Zap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { SignOutButton } from '@/components/auth/SignOutButton'
+import { ThemeToggle } from '@/components/ui/theme-toggle'
 
 export function NavigationHeader({
   onOpenAuth,
@@ -53,26 +54,27 @@ export function NavigationHeader({
   }
 
   return (
-    <header className="border-b px-6 py-4 flex justify-between items-center max-w-7xl mx-auto w-full bg-white">
-      <div className="font-bold text-xl tracking-tight text-purple-600 flex items-center gap-2">
-        <Zap size={20} fill="yellow" />
+    <header className="mx-auto flex w-full max-w-7xl items-center justify-between border-b border-border bg-card px-6 py-4">
+      <div className="flex items-center gap-2 text-xl font-bold tracking-tight text-primary">
+        <Zap size={20} fill="currentColor" className="text-primary" />
         Review Manager
       </div>
 
       <div className="flex items-center gap-4">
+        <ThemeToggle />
         <LanguageSwitcher />
 
         {loading ? (
-          <div className="w-24 h-8 bg-gray-100 rounded-md animate-pulse" />
+          <div className="h-8 w-24 animate-pulse rounded-md bg-muted" />
         ) : userEmail ? (
           // Authenticated View
           <div className="flex items-center gap-3">
-            <span className="text-xs text-gray-500 hidden sm:inline font-medium">
+            <span className="hidden text-xs font-medium text-muted-foreground sm:inline">
               {userEmail}
             </span>
             <Link
               href="/dashboard"
-              className="text-sm font-medium bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md transition shadow-sm"
+              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm shadow-primary/20 transition hover:bg-primary/90"
             >
               Dashboard →
             </Link>
@@ -83,14 +85,14 @@ export function NavigationHeader({
           <>
             <Button
               onClick={() => onOpenAuth('login')}
-              className="text-sm font-medium text-gray-700 hover:text-black px-3 py-1.5"
+              className="px-3 py-1.5 text-sm font-medium text-foreground hover:text-primary"
               variant="ghost"
             >
               {t('nav.signIn')}
             </Button>
             <Button
               onClick={() => onOpenAuth('register')}
-              className="text-sm font-medium bg-black text-white px-4 py-2 rounded-md hover:bg-gray-800 transition shadow-sm"
+              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm shadow-primary/20 transition hover:bg-primary/90"
             >
               {t('nav.getStarted')}
             </Button>
