@@ -45,7 +45,7 @@ export default function WorkspaceFilter({
     return (
       <Card
         key={workspace.id}
-        className="hover:border-primary/50 transition-colors flex flex-col justify-between h-full"
+        className="flex h-full flex-col justify-between border border-border ring-0 transition-colors hover:border-primary/50"
       >
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -131,7 +131,7 @@ export default function WorkspaceFilter({
             }}
             className="w-full"
           >
-            <CarouselContent className="-ml-4 -ml-4">
+            <CarouselContent className="-ml-4">
               {filteredWorkspaces.map((workspace) => (
                 <CarouselItem
                   key={workspace.id}

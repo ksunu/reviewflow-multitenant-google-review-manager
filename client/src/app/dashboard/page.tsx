@@ -114,7 +114,7 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-4 sm:p-8 space-y-8 max-w-7xl mx-auto w-full">
+    <div className="min-h-0 flex-1 overflow-y-auto bg-background p-4 sm:p-8 space-y-8 max-w-7xl mx-auto w-full">
       {/* Top Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
