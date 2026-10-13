@@ -42,8 +42,9 @@ The following summarizes the schema shared by the user for debugging. Confirm th
 ### Database functions and indexes expected by the app
 
 - `public.save_ai_reply_atomically(uuid, uuid, text, text)` saves an AI draft and increments `workspaces.ai_replies_used_this_month` atomically, after membership, review ownership, posted-state, and quota checks. Its `search_path` was corrected to `public, auth, pg_temp` after a `42P01` relation error in RLS evaluation.
+- Pending Supabase application: migration `supabase/migrations/202610130001_allow_unanalyzed_ai_reply.sql` allows `p_sentiment` to be `NULL` and preserves the review's current sentiment in that case. This is required because `NULL` means “not analyzed”; AI reply drafting is not sentiment analysis.
 - `public.reviews_workspace_location_review_identity_idx` is a unique index on `(workspace_id, location_id, review_date, author_name)`. The user confirmed this exact index exists in Supabase. Review sync uses it as its upsert conflict target and ignores duplicates to preserve existing replies/statuses.
-- The current repository has no SQL migration files under `supabase/migrations/`. The function/index are therefore remote database state unless separately versioned. Keep database schema changes in versioned migrations going forward.
+- The confirmed RPC and unique review index exist in Supabase; the RPC update is versioned in `supabase/migrations/202610130001_allow_unanalyzed_ai_reply.sql`. Keep future database schema changes in versioned migrations.
 
 ## External services and environment variables
 

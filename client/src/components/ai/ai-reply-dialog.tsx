@@ -192,7 +192,7 @@ export function AIReplyDialog({
             </Label>
             <Textarea
               id="context"
-              placeholder="e.g., Customer was shouting at staff, item was final sale, or unverified bot review..."
+              placeholder="Add verified facts that may help the reply, such as an approved contact method or confirmed item availability details."
               value={internalContext}
               onChange={(e) => setInternalContext(e.target.value)}
               className="text-xs h-20 resize-none"
