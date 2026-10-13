@@ -13,9 +13,7 @@ import {
 } from '@/components/ui/card'
 import { getCurrentUser } from '@/lib/supabase/user'
 import WorkspaceFilter from './_components/workspace-filter'
-import { RatingDistributionChart } from '@/components/stats/RatingDistributionChart'
-import { SentimentBreakdownChart } from '@/components/stats/SentimentBreakdownChart'
-import { RatingTrendChart } from '@/components/stats/RatingTrendChart'
+import DashboardAnalytics from './_components/dashboard-analytics'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -44,15 +42,17 @@ export default async function DashboardPage() {
   }
 
   const workspaceMemberships =
-    memberships
-      ?.map((m) => ({
-        ...m.workspaces,
-        role: m.role,
-      }))
-      .filter(
-        (w): w is NonNullable<typeof w> =>
-          w !== null && typeof w === 'object' && 'id' in w,
-      ) || []
+    memberships?.flatMap((membership) => {
+      const relatedWorkspaces = Array.isArray(membership.workspaces)
+        ? membership.workspaces
+        : membership.workspaces
+          ? [membership.workspaces]
+          : []
+
+      return relatedWorkspaces
+        .filter((workspace) => workspace && 'id' in workspace)
+        .map((workspace) => ({ ...workspace, role: membership.role }))
+    }) || []
 
   const workspaceIds = workspaceMemberships.map((w) => w.id)
 
@@ -185,23 +185,7 @@ export default async function DashboardPage() {
           locationCountsMap={locationCountsMap}
         />
       </div>
-      {/* Analytics Charts Grid */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
-        {/* Rating Distribution (3 Cols) */}
-        <div className="lg:col-span-3">
-          <RatingDistributionChart workspaces={workspaceMemberships} />
-        </div>
-
-        {/* Sentiment Breakdown (4 Cols) */}
-        <div className="lg:col-span-4">
-          <SentimentBreakdownChart workspaces={workspaceMemberships} />
-        </div>
-
-        {/* Full-Width Rating Trend Timeline (7 Cols) */}
-        <div className="lg:col-span-7">
-          <RatingTrendChart workspaces={workspaceMemberships} />
-        </div>
-      </div>
+      <DashboardAnalytics workspaces={workspaceMemberships} />
     </div>
   )
 }

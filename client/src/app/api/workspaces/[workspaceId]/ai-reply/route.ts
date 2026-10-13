@@ -119,11 +119,6 @@ export async function POST(
     const rating = review.rating
     const review_text = review.review_text || ''
 
-    // Determine review sentiment based on star rating
-    let sentiment = 'neutral'
-    if (rating >= 4) sentiment = 'positive'
-    else if (rating <= 2) sentiment = 'negative'
-
     // Check if the review has text or is rating-only
     const hasText = Boolean(review_text && review_text.trim().length > 0)
 
@@ -253,7 +248,7 @@ Guidelines:
         p_workspace_id: workspaceId,
         p_review_id: reviewId,
         p_reply: cleanedReply,
-        p_sentiment: sentiment,
+        p_sentiment: review.sentiment,
       },
     )
 
@@ -288,7 +283,7 @@ Guidelines:
 
     return NextResponse.json({
       reply: cleanedReply,
-      sentiment,
+      sentiment: review.sentiment,
       usage,
     })
   } catch (err: any) {

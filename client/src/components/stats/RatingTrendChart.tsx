@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import {
   Area,
   AreaChart,
@@ -12,29 +12,16 @@ import {
 } from 'recharts'
 import {
   Card,
-  CardAction,
   CardContent,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { createClient } from '@/lib/supabase/client'
 import { Loader2, TrendingUp, Star } from 'lucide-react'
 
-export interface WorkspaceItem {
-  id: string
-  name: string
-  slug?: string
-}
-
 interface RatingTrendChartProps {
-  workspaces: WorkspaceItem[]
+  workspaceIds: string[]
+  selectedWorkspaceId: string
 }
 
 interface TrendDataPoint {
@@ -44,17 +31,15 @@ interface TrendDataPoint {
   reviewCount: number
 }
 
-export function RatingTrendChart({ workspaces = [] }: RatingTrendChartProps) {
-  const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string>('all')
+export function RatingTrendChart({
+  workspaceIds,
+  selectedWorkspaceId,
+}: RatingTrendChartProps) {
   const [trendData, setTrendData] = useState<TrendDataPoint[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   const supabase = createClient()
-
-  const workspaceIds = useMemo(() => {
-    return workspaces.map((w) => w.id)
-  }, [workspaces])
 
   const fetchTrendData = useCallback(async () => {
     if (!workspaceIds.length) {
@@ -141,7 +126,7 @@ export function RatingTrendChart({ workspaces = [] }: RatingTrendChartProps) {
         </div>
       ) : (
         <>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardHeader className="pb-2">
             <div className="flex items-center gap-2">
               <div className="rounded-lg bg-emerald-500/10 p-2 text-emerald-500">
                 <TrendingUp className="h-4 w-4" />
@@ -150,26 +135,6 @@ export function RatingTrendChart({ workspaces = [] }: RatingTrendChartProps) {
                 Rating Trend Over Time
               </CardTitle>
             </div>
-            <CardAction>
-              <Select
-                value={selectedWorkspaceId}
-                onValueChange={setSelectedWorkspaceId}
-              >
-                <SelectTrigger className="w-[190px]">
-                  <SelectValue placeholder="Select Workspace" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">
-                    All Workspaces ({workspaces.length})
-                  </SelectItem>
-                  {workspaces.map((workspace) => (
-                    <SelectItem key={workspace.id} value={workspace.id}>
-                      {workspace.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </CardAction>
           </CardHeader>
 
           <CardContent className="h-[280px] pt-4">

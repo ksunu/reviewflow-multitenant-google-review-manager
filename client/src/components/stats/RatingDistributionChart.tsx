@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import {
   Bar,
   BarChart,
@@ -13,29 +12,16 @@ import {
 } from 'recharts'
 import {
   Card,
-  CardAction,
   CardContent,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { useWorkspaceStats } from '@/hooks/use-workspace-stats'
 import { Loader2, Star } from 'lucide-react'
 
-export interface WorkspaceItem {
-  id: string
-  name: string
-  slug?: string
-}
-
 export interface RatingDistributionChartProps {
-  workspaces: WorkspaceItem[]
+  workspaceIds: string[]
+  selectedWorkspaceId: string
 }
 
 interface RatingDistributionItem {
@@ -53,12 +39,9 @@ const STAR_COLORS: Record<number, string> = {
 }
 
 export function RatingDistributionChart({
-  workspaces = [],
+  workspaceIds,
+  selectedWorkspaceId,
 }: RatingDistributionChartProps) {
-  const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string>('all')
-
-  const workspaceIds = workspaces.map((workspace) => workspace.id)
-
   const { ratingDistribution, loading } = useWorkspaceStats(
     workspaceIds,
     selectedWorkspaceId,
@@ -72,30 +55,10 @@ export function RatingDistributionChart({
         </div>
       ) : (
         <>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardHeader className="pb-2">
             <CardTitle className="text-base font-semibold tracking-tight">
               Rating Distribution
             </CardTitle>
-            <CardAction>
-              <Select
-                value={selectedWorkspaceId}
-                onValueChange={setSelectedWorkspaceId}
-              >
-                <SelectTrigger className="w-[190px]">
-                  <SelectValue placeholder="Select Workspace" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">
-                    All Workspaces ({workspaces.length})
-                  </SelectItem>
-                  {workspaces.map((workspace) => (
-                    <SelectItem key={workspace.id} value={workspace.id}>
-                      {workspace.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </CardAction>
           </CardHeader>
 
           <CardContent className="h-[280px] pt-4">

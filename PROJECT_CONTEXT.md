@@ -35,7 +35,7 @@ The following summarizes the schema shared by the user for debugging. Confirm th
 - `workspaces`: `id`, `name`, `slug`, `business_type`, `ai_replies_used_this_month`, `ai_reply_limit`, `created_at`. The shared schema does **not** include `subscription_tier`, `language`, or a direct tenant relationship.
 - `workspace_members`: `workspace_id`, `user_id`, and role (`owner`, `admin`, `member`); `user_id` references `auth.users`.
 - `locations`: workspace ownership, name, Google Place ID, address/coordinates, business type, `last_synced_at`.
-- `reviews`: workspace/location ownership, rating, author, review content/date, sentiment, AI draft, status, reply status, and Google metadata. In the shared schema, `review_date` is `text`.
+- `reviews`: workspace/location ownership, rating, author, review content/date, sentiment, AI draft, status, reply status, and Google metadata. In the shared schema, `review_date` is `text`; `sentiment` is nullable `text` (not an enum/check-constrained column). Expected analyzed values are `positive`, `neutral`, and `negative`; `NULL` means the review has not been analyzed.
 - `tenants`, `tenant_users`, and `operational_digests` also exist in the supplied schema, but no workspace-to-tenant relationship was shown. Do not assume tenant subscription state can be used for a workspace until that relationship is established.
 - RLS policies refer to helpers such as `user_belongs_to_workspace` and `check_user_workspace_role`; some supplied policy expressions also query `workspace_members` directly.
 
@@ -59,6 +59,7 @@ Names only; never put secret values in this file or commit them.
 
 - Review sync calls the Google Places Details **Legacy** endpoint with newest-first ordering. Google returns at most five reviews per request, so this is not a complete review-history importer.
 - Review sync has a 15-second upstream timeout, validates review ratings and timestamps, reports actual inserted rows, and checks relevant Supabase read/write errors.
+- The Analytics Overview has one workspace selector shared by all three charts. The sentiment chart counts `reviews.sentiment` values directly and shows `NULL` rows as a separate “Not analyzed” category. Syncing reviews does not analyze or populate sentiment; AI reply generation also leaves the sentiment unchanged. The legacy `/api/ai/generate-reply` handler can return model-generated sentiment, but no in-app caller was found and it does not persist that result.
 - The 24-hour sync cooldown block is currently commented out in `syncReviews.ts` (user change). Subscription-tier gating cannot be correctly restored from the shared schema because it has no workspace tier field/relationship.
 - The mock-review endpoint at `/api/workspaces/[workspaceId]/sync` returns 404 in production; it exists only as a development helper.
 - `/api/ai/generate-reply` is a separate legacy Route Handler. No in-app caller was found during cleanup, but Route Handlers can be externally called, so review compatibility before deleting it.

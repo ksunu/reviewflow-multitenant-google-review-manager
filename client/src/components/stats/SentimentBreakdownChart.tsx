@@ -1,32 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
-import {
-  Card,
-  CardAction,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { useWorkspaceStats } from '@/hooks/use-workspace-stats'
-import { Loader2, Smile, Meh, Frown } from 'lucide-react'
-
-export interface WorkspaceItem {
-  id: string
-  name: string
-  slug?: string
-}
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { createClient } from '@/lib/supabase/client'
+import { Loader2, Smile, Meh, Frown, CircleHelp } from 'lucide-react'
 
 interface SentimentBreakdownChartProps {
-  workspaces: WorkspaceItem[]
+  workspaceIds: string[]
+  selectedWorkspaceId: string
 }
 
 // Sentiment Colors matching your design theme
@@ -36,23 +18,98 @@ const SENTIMENT_COLORS = {
   negative: '#f43f5e', // Rose 500
 }
 
+const SENTIMENTS = ['positive', 'neutral', 'negative'] as const
+type Sentiment = (typeof SENTIMENTS)[number]
+type SentimentCounts = Record<Sentiment, number> & { unanalyzed: number }
+
+const EMPTY_COUNTS: SentimentCounts = {
+  positive: 0,
+  neutral: 0,
+  negative: 0,
+  unanalyzed: 0,
+}
+
 export function SentimentBreakdownChart({
-  workspaces = [],
+  workspaceIds,
+  selectedWorkspaceId,
 }: SentimentBreakdownChartProps) {
-  const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string>('all')
+  const [counts, setCounts] = useState<SentimentCounts>(EMPTY_COUNTS)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const supabase = useMemo(() => createClient(), [])
 
-  const workspaceIds = workspaces.map((workspace) => workspace.id)
+  useEffect(() => {
+    let cancelled = false
+    const targetIds =
+      selectedWorkspaceId === 'all'
+        ? workspaceIds
+        : workspaceIds.includes(selectedWorkspaceId)
+          ? [selectedWorkspaceId]
+          : []
 
-  const { stats, loading } = useWorkspaceStats(
-    workspaceIds,
-    selectedWorkspaceId,
-  )
+    if (targetIds.length === 0) {
+      setCounts(EMPTY_COUNTS)
+      setError(null)
+      setLoading(false)
+      return () => {
+        cancelled = true
+      }
+    }
 
-  // Map stats to Recharts pie format
-  const positive = stats?.positive_count || 0
-  const neutral = stats?.neutral_count || 0
-  const negative = stats?.negative_count || 0
-  const total = positive + neutral + negative
+    setLoading(true)
+    setError(null)
+
+    async function loadSentimentCounts() {
+      try {
+        const results = await Promise.all([
+          ...SENTIMENTS.map((sentiment) =>
+            supabase
+              .from('reviews')
+              .select('id', { count: 'exact', head: true })
+              .in('workspace_id', targetIds)
+              .eq('sentiment', sentiment),
+          ),
+          supabase
+            .from('reviews')
+            .select('id', { count: 'exact', head: true })
+            .in('workspace_id', targetIds)
+            .is('sentiment', null),
+        ])
+
+        const failedResult = results.find((result) => result.error)
+        if (failedResult?.error) throw failedResult.error
+
+        if (!cancelled) {
+          setCounts({
+            positive: results[0].count ?? 0,
+            neutral: results[1].count ?? 0,
+            negative: results[2].count ?? 0,
+            unanalyzed: results[3].count ?? 0,
+          })
+        }
+      } catch (err) {
+        console.error('Error fetching sentiment counts:', err)
+        if (!cancelled) {
+          setCounts(EMPTY_COUNTS)
+          setError('Could not load sentiment data.')
+        }
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+
+    void loadSentimentCounts()
+
+    return () => {
+      cancelled = true
+    }
+  }, [workspaceIds, selectedWorkspaceId, supabase])
+
+  const positive = counts.positive
+  const neutral = counts.neutral
+  const negative = counts.negative
+  const unanalyzed = counts.unanalyzed
+  const total = positive + neutral + negative + unanalyzed
 
   const chartData = [
     {
@@ -73,6 +130,12 @@ export function SentimentBreakdownChart({
       color: SENTIMENT_COLORS.negative,
       icon: Frown,
     },
+    {
+      name: 'Not analyzed',
+      value: unanalyzed,
+      color: '#94a3b8',
+      icon: CircleHelp,
+    },
   ].filter((item) => item.value > 0) // Hide empty segments to keep the chart clean
 
   return (
@@ -81,32 +144,16 @@ export function SentimentBreakdownChart({
         <div className="flex h-[340px] items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
+      ) : error ? (
+        <div className="flex h-[340px] items-center justify-center px-6 text-center text-sm text-muted-foreground">
+          {error}
+        </div>
       ) : (
         <>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardHeader className="pb-2">
             <CardTitle className="text-base font-semibold tracking-tight">
               Sentiment Analysis
             </CardTitle>
-            <CardAction>
-              <Select
-                value={selectedWorkspaceId}
-                onValueChange={setSelectedWorkspaceId}
-              >
-                <SelectTrigger className="w-[190px]">
-                  <SelectValue placeholder="Select Workspace" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">
-                    All Workspaces ({workspaces.length})
-                  </SelectItem>
-                  {workspaces.map((workspace) => (
-                    <SelectItem key={workspace.id} value={workspace.id}>
-                      {workspace.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </CardAction>
           </CardHeader>
 
           <CardContent className="h-[280px] pt-2 flex items-center justify-between">
@@ -199,6 +246,12 @@ export function SentimentBreakdownChart({
                   count: negative,
                   color: SENTIMENT_COLORS.negative,
                   Icon: Frown,
+                },
+                {
+                  label: 'Not analyzed',
+                  count: unanalyzed,
+                  color: '#94a3b8',
+                  Icon: CircleHelp,
                 },
               ].map(({ label, count, color, Icon }) => {
                 const pct = total > 0 ? Math.round((count / total) * 100) : 0
