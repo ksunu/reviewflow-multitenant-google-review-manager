@@ -98,7 +98,7 @@ export default function GoogleMaps({ locations = [] }: GoogleMapsProps) {
   }
 
   return (
-    <div className="w-full h-[450px] rounded-xl overflow-hidden border shadow-sm mt-8 relative">
+    <div className="relative mt-6 h-80 w-full min-w-0 overflow-hidden rounded-xl border shadow-sm sm:mt-8 sm:h-[450px]">
       <Map
         defaultCenter={safeCenter}
         defaultZoom={12}

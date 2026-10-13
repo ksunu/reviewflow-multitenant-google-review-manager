@@ -1,7 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import AppSideBar from '@/components/navbar/Sidebar'
-import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 
 interface WorkspaceLayoutProps {
   children: React.ReactNode
@@ -41,21 +40,12 @@ export default async function WorkspaceLayout({
 
   return (
     <div className="flex min-h-0 flex-1 overflow-hidden bg-background">
-      <SidebarProvider>
-        <AppSideBar
-          workspaceId={workspaceId}
-          workspace={workspace}
-          user={user}
-        />
-        <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-          <main className="flex min-h-0 flex-1 flex-col overflow-y-auto p-4 md:p-8">
-            <div className="mb-3 md:hidden">
-              <SidebarTrigger aria-label="Open workspace navigation" />
-            </div>
-            {children}
-          </main>
-        </div>
-      </SidebarProvider>
+      <AppSideBar workspaceId={workspaceId} workspace={workspace} user={user} />
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+        <main className="flex min-h-0 flex-1 flex-col overflow-y-auto p-4 md:p-8">
+          {children}
+        </main>
+      </div>
     </div>
   )
 }

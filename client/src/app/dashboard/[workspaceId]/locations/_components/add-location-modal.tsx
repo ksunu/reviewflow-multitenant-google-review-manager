@@ -172,7 +172,7 @@ export default function AddLocationModal({
       <DialogTrigger className={buttonVariants({ variant: 'default' })}>
         <Plus className="w-4 h-4 mr-2" /> Add Location
       </DialogTrigger>
-      <DialogContent className="sm:max-w-xl">
+      <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-xl">
         <form onSubmit={handleCreateLocation}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">

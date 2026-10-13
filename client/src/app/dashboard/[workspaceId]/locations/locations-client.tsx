@@ -138,18 +138,18 @@ export default function WorkspaceLocationsClient({
           </CardDescription>
         </CardHeader>
 
-        <CardContent className="pt-4 border-t bg-muted/10 text-xs text-muted-foreground flex justify-between items-center">
+        <CardContent className="flex flex-col items-stretch gap-3 border-t bg-muted/10 pt-4 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
           <button
             onClick={() => handleSync(loc)}
             disabled={isSyncing || !loc.google_place_id}
-            className="px-3 py-1.5 text-xs font-semibold bg-gray-900 text-white rounded-lg hover:bg-gray-800 disabled:opacity-50 cursor-pointer transition-colors"
+            className="w-full cursor-pointer rounded-lg bg-gray-900 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-gray-800 disabled:opacity-50 sm:w-auto"
           >
             {isSyncing ? 'Syncing...' : '🔄 Sync Reviews'}
           </button>
 
           <a
             href={`/dashboard/${workspaceId}/reviews?locationId=${loc.id}`}
-            className="text-xs font-medium text-indigo-600 hover:text-indigo-800"
+            className="inline-flex min-h-8 items-center justify-center text-center text-xs font-medium text-indigo-600 hover:text-indigo-800 sm:text-right"
           >
             View Reviews →
           </a>
@@ -160,7 +160,7 @@ export default function WorkspaceLocationsClient({
 
   return (
     <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}>
-      <div className="space-y-8 max-w-6xl mx-auto">
+      <div className="mx-auto w-full min-w-0 max-w-6xl space-y-6 sm:space-y-8">
         <div className="space-y-2">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
@@ -191,17 +191,17 @@ export default function WorkspaceLocationsClient({
             onAction={() => setIsOpen(true)}
           />
         ) : locations?.length <= 3 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
             {locations?.map((loc) => renderLocationCard(loc))}
           </div>
         ) : (
-          <div className="px-6 md:px-12">
+          <div className="px-6 sm:px-8 md:px-12">
             <Carousel opts={{ align: 'start', loop: false }} className="w-full">
               <CarouselContent className="-ml-4">
                 {locations?.map((loc) => (
                   <CarouselItem
                     key={loc.id}
-                    className="pl-4 md:basis-1/2 lg:basis-1/3"
+                    className="pl-4 sm:basis-1/2 lg:basis-1/3"
                   >
                     {renderLocationCard(loc)}
                   </CarouselItem>

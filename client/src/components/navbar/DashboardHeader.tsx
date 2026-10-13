@@ -16,6 +16,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { SidebarTrigger } from '@/components/ui/sidebar'
+
+export function WorkspaceSidebarTrigger() {
+  const pathname = usePathname()
+  const params = useParams()
+  const workspaceId = params.workspaceId as string | undefined
+  const isInWorkspace = Boolean(
+    workspaceId && pathname?.startsWith(`/dashboard/${workspaceId}`),
+  )
+
+  if (!isInWorkspace) return null
+
+  return (
+    <SidebarTrigger
+      aria-label="Open workspace navigation"
+      className="-ml-2 mr-1 h-8 w-8 shrink-0 md:hidden"
+    />
+  )
+}
 
 export default function DashboardHeader() {
   const router = useRouter()
