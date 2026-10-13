@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { I18nProvider } from '@/components/providers/I18nProvider'
 import { Toaster } from '@/components/ui/sonner'
+import { QueryProvider } from '@/components/providers/query-provider'
 import './globals.css'
 
 const geistSans = Geist({
@@ -29,8 +30,10 @@ export default function RootLayout({
     <html lang="en" className="h-full">
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
         <I18nProvider>
-          {children}
-          <Toaster position="bottom-right" richColors />
+          <QueryProvider>
+            {children}
+            <Toaster position="bottom-right" richColors />
+          </QueryProvider>
         </I18nProvider>
       </body>
     </html>

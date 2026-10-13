@@ -83,14 +83,14 @@ export function NavigationHeader({
           <>
             <Button
               onClick={() => onOpenAuth('login')}
-              className="text-sm font-medium text-gray-700 hover:text-black px-3 py-1.5 cursor-pointer"
+              className="text-sm font-medium text-gray-700 hover:text-black px-3 py-1.5"
               variant="ghost"
             >
               {t('nav.signIn')}
             </Button>
             <Button
               onClick={() => onOpenAuth('register')}
-              className="text-sm font-medium bg-black text-white px-4 py-2 rounded-md hover:bg-gray-800 transition shadow-sm cursor-pointer"
+              className="text-sm font-medium bg-black text-white px-4 py-2 rounded-md hover:bg-gray-800 transition shadow-sm"
             >
               {t('nav.getStarted')}
             </Button>

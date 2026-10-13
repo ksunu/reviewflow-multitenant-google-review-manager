@@ -16,23 +16,24 @@ import {
 
 import {
   Home,
-  User,
   Settings,
-  ChevronRight,
   MapPin,
   MessageCircleCode,
   ArrowLeft,
   Building2,
-  UserGroup,
+  Users,
+  Sliders,
+  LogOut,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
-
-const itemIcon = {
-  overview: Home,
-  locations: MapPin,
-  reviews: MessageCircleCode,
-}
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 
 export default function AppSidebar({
   workspaceId,
@@ -61,14 +62,15 @@ export default function AppSidebar({
     },
     {
       title: 'Team',
-      icon: UserGroup,
+      icon: Users,
       onClick: () => redirect(`/dashboard/${workspaceId}/team`),
     },
   ]
+
   return (
     <Sidebar
       collapsible="icon"
-      className="group/sidebar top-16 h-[calc(100vh-4rem)]"
+      className="group/sidebar top-16 h-[calc(100vh-4rem)] border-r"
     >
       <SidebarContent>
         <SidebarGroup>
@@ -79,16 +81,16 @@ export default function AppSidebar({
                   <ArrowLeft className="w-4 h-4" />
                 </Link>
               </Button>
-              <div className="flex items-center gap-2">
-                <Building2 className="w-4 h-4 text-primary" />
-                <span className="font-semibold text-sm">
+              <div className="flex items-center gap-2 truncate">
+                <Building2 className="w-4 h-4 text-primary shrink-0" />
+                <span className="font-semibold text-sm truncate">
                   {workspace?.name || 'Workspace'}
                 </span>
               </div>
             </div>
           </SidebarGroupLabel>
 
-          <SidebarGroupContent>
+          <SidebarGroupContent className="mt-2">
             <SidebarMenu>
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
@@ -105,14 +107,59 @@ export default function AppSidebar({
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+
+      {/* Footer using DropdownMenu without nested button conflicts */}
       <SidebarFooter>
-        <div className="text-xs text-muted-foreground px-2 border-t pt-4">
-          Logged in as{' '}
-          <span className="font-medium text-foreground truncate block">
-            {user.email}
-          </span>
-        </div>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild={false}>
+                <div
+                  role="button"
+                  tabIndex={0}
+                  className="flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-none hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-[[data-sidebar=menu-action]]/menu-item:pr-8 aria-describedby:hidden aria-disabled:pointer-events-none aria-disabled:opacity-55 data-[active=true]:bg-sidebar-accent data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground h-12 cursor-pointer"
+                >
+                  <Sliders className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  <div className="flex flex-col text-left truncate leading-tight group-data-[collapsible=icon]:hidden">
+                    <span className="font-medium text-xs text-foreground truncate">
+                      {user?.email || 'User Account'}
+                    </span>
+                    <span className="text-[10px] text-muted-foreground">
+                      Configure
+                    </span>
+                  </div>
+                </div>
+              </DropdownMenuTrigger>
+
+              <DropdownMenuContent
+                side="right"
+                align="end"
+                className="w-56 rounded-xl shadow-lg"
+              >
+                <div className="px-3 py-2 text-xs font-semibold text-muted-foreground border-b mb-1 truncate">
+                  {user?.email}
+                </div>
+                <DropdownMenuItem
+                  onClick={() => redirect(`/dashboard/${workspaceId}/settings`)}
+                  className="cursor-pointer gap-2"
+                >
+                  <Settings className="w-4 h-4 text-muted-foreground" />
+                  <span>Workspace Settings</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => redirect('/auth/signout')}
+                  className="cursor-pointer gap-2 text-rose-500 focus:text-rose-500"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>Log out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarFooter>
+
       <SidebarRail />
     </Sidebar>
   )

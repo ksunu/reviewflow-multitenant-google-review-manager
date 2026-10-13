@@ -33,18 +33,10 @@ export default async function WorkspaceLocationsPage({
 
   const workspaceRole = membership?.role || 'member'
 
-  // 4. Fetch locations
-  const { data: locations } = await supabase
-    .from('locations')
-    .select('*')
-    .eq('workspace_id', workspaceId)
-    .order('created_at', { ascending: false })
-
   return (
     <WorkspaceLocationsClient
       workspaceId={workspaceId}
       initialWorkspace={workspace}
-      initialLocations={locations || []}
       workspaceRole={workspaceRole}
     />
   )

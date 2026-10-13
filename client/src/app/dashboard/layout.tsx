@@ -3,6 +3,8 @@ import Link from 'next/link'
 import { LanguageSwitcher } from '@/components/language/LanguageSwitcher'
 import { getCurrentUser } from '@/lib/supabase/user'
 import DashboardHeader from '@/components/navbar/DashboardHeader'
+import Image from 'next/image'
+import AppLogo from '@/lib/images/logo_no_background.svg'
 
 export default async function DashboardLayout({
   children,
@@ -23,7 +25,7 @@ export default async function DashboardLayout({
             href="/dashboard"
             className="font-bold text-gray-900 text-lg tracking-tight flex items-center gap-2"
           >
-            <span className="w-3 h-3 rounded-full bg-purple-600"></span>
+            <Image src={AppLogo} height={24} alt="Review Manager Logo" />
             Review Manager
           </Link>
           <DashboardHeader />

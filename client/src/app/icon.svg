@@ -1,19 +1,29 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
-  <rect width="32" height="32" rx="8" fill="#7C3AED" />
+<svg 
+  xmlns="http://www.w3.org/2000/svg" 
+  viewBox="0 0 100 100" 
+  width="40" 
+  height="40" 
+  className="rounded-xl shadow-xs"
+>
+  <!-- Background Badge (Purple) -->
+  <rect width="100" height="100" rx="24" fill="#7C3AED" />
+  
+  <!-- Outer Speech Bubble Outline (White) -->
   <path 
-    d="M27 15C27 21.6274 21.6274 27 15 27C12.8354 27 10.8038 26.4258 9.03434 25.4217L4 27L5.57831 21.9657C4.57422 20.1962 4 18.1646 4 16C4 9.37258 9.37258 4 16 4C22.6274 4 28 9.37258 28 16" 
+    d="M 50 18 C 30 18 16 31 16 48 C 16 57 21 65 29 71 C 27 79 21 84 18 86 C 26 86 35 82 41 77 C 44 78 47 78 50 78 C 70 78 84 65 84 48 C 84 31 70 18 50 18 Z" 
     fill="none" 
     stroke="#FFFFFF" 
-    stroke-width="2.5" 
+    stroke-width="6" 
     stroke-linecap="round" 
     stroke-linejoin="round"
-    transform="translate(-1, -1)"
   />
+
+  <!-- Center Pulse Line (White) -->
   <path 
-    d="M9 16H12L13.5 12.5L16.5 19.5L18 16H21" 
+    d="M 28 48 L 39 48 L 45 37 L 55 59 L 61 48 L 72 48" 
     fill="none" 
     stroke="#FFFFFF" 
-    stroke-width="2.2" 
+    stroke-width="6" 
     stroke-linecap="round" 
     stroke-linejoin="round"
   />

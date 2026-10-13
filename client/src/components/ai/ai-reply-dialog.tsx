@@ -137,7 +137,7 @@ export function AIReplyDialog({
           asChild // <--- ADD THIS PROP
           variant="outline"
           size="sm"
-          className="gap-1.5 text-xs h-8 border-primary/30 hover:bg-primary/5 text-primary cursor-pointer"
+          className="gap-1.5 text-xs h-8 border-primary/30 hover:bg-primary/5 text-primary"
         >
           <span>
             <Sparkles className="w-3.5 h-3.5" /> AI Reply

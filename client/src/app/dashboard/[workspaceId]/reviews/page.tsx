@@ -9,14 +9,9 @@ import {
 } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import {
-  Star,
   MessageSquare,
-  Sparkles,
   Filter,
   Loader2,
-  CheckCircle2,
-  Clock,
-  AlertCircle,
   Store,
   RefreshCw,
   ChevronLeft,
@@ -70,9 +65,8 @@ export default function WorkspaceReviewsPage() {
     })
     router.push(`${pathname}?${params.toString()}`)
   }
-  console.log(reviews)
+
   const handleSyncReviews = async () => {
-    // If a specific location is selected, sync that location; otherwise sync the first available or let action handle it
     const targetLocationId =
       selectedLocation !== 'all' ? selectedLocation : locations[0]?.id
 
@@ -108,7 +102,6 @@ export default function WorkspaceReviewsPage() {
   const loadReviewsData = async () => {
     try {
       setLoading(true)
-      // Fetch locations dropdown data if not already loaded
       if (locations.length === 0) {
         const { data: locs } = await supabase
           .from('locations')
@@ -118,7 +111,6 @@ export default function WorkspaceReviewsPage() {
         setLocations(locs || [])
       }
 
-      // Calculate range for pagination
       const from = (page - 1) * pageSize
       const to = from + pageSize - 1
 
@@ -160,8 +152,10 @@ export default function WorkspaceReviewsPage() {
   }, [workspaceId, page, pageSize, selectedLocation, selectedStatus])
 
   return (
-    <div className="space-y-8 max-w-6xl mx-auto">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    // Viewport-locked flex container ensuring full width and fixed header/footer behavior
+    <div className="flex flex-col h-[calc(100vh-6rem)] pb-4 w-full overflow-hidden">
+      {/* Fixed Header & Filters */}
+      <div className="shrink-0 flex flex-col md:flex-row md:items-center md:justify-between gap-4 w-full pb-4 border-b">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Review Feed</h1>
           <p className="text-muted-foreground text-sm">
@@ -241,43 +235,48 @@ export default function WorkspaceReviewsPage() {
         </div>
       </div>
 
-      {loading ? (
-        <div className="flex h-96 items-center justify-center">
-          <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-        </div>
-      ) : reviews.length === 0 ? (
-        <EmptyState
-          icon={<MessageSquare className="w-6 h-6" />}
-          title="No customer reviews found"
-          description={
-            selectedLocation !== 'all' || selectedStatus !== 'all'
-              ? 'No reviews match your selected filter criteria. Try resetting your filters.'
-              : 'No feedback has been synced for your workspace locations yet.'
-          }
-          actionLabel={
-            selectedLocation !== 'all' || selectedStatus !== 'all'
-              ? 'Clear Filters'
-              : undefined
-          }
-          onAction={() => {
-            updateQueryParam({ location: 'all', status: 'all', page: '1' })
-          }}
-        />
-      ) : (
-        <div className="space-y-4">
-          {reviews.map((review) => (
-            <ReviewCard
-              key={review.id}
-              review={review}
-              workspaceId={workspaceId}
+      {/* Independently Scrollable Middle Content Area (Full Width) */}
+      <div className="p-2 pl-1 flex-1 overflow-y-auto w-full py-4 min-h-0 ">
+        {loading ? (
+          <div className="flex h-full items-center justify-center w-full">
+            <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+          </div>
+        ) : reviews.length === 0 ? (
+          <div className="w-full flex h-full items-center justify-center">
+            <EmptyState
+              icon={<MessageSquare className="w-6 h-6" />}
+              title="No customer reviews found"
+              description={
+                selectedLocation !== 'all' || selectedStatus !== 'all'
+                  ? 'No reviews match your selected filter criteria. Try resetting your filters.'
+                  : 'No feedback has been synced for your workspace locations yet.'
+              }
+              actionLabel={
+                selectedLocation !== 'all' || selectedStatus !== 'all'
+                  ? 'Clear Filters'
+                  : undefined
+              }
+              onAction={() => {
+                updateQueryParam({ location: 'all', status: 'all', page: '1' })
+              }}
             />
-          ))}
-        </div>
-      )}
+          </div>
+        ) : (
+          <div className="w-full space-y-4">
+            {reviews.map((review) => (
+              <ReviewCard
+                key={review.id}
+                review={review}
+                workspaceId={workspaceId}
+              />
+            ))}
+          </div>
+        )}
+      </div>
 
-      {/* Pagination Controls Footer */}
+      {/* Fixed Footer Pagination Bar at the Bottom (Full Width) */}
       {!loading && totalPages > 0 && (
-        <div className="flex items-center justify-between pt-4 border-t">
+        <div className="shrink-0 flex items-center justify-between w-full pt-4 border-t bg-background">
           <p className="text-sm text-muted-foreground">
             Showing {totalCount === 0 ? 0 : (page - 1) * pageSize + 1} to{' '}
             {Math.min(page * pageSize, totalCount)} of {totalCount} reviews

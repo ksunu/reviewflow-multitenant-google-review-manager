@@ -1,20 +1,5 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import Link from 'next/link'
-import {
-  Building2,
-  LayoutDashboard,
-  MapPin,
-  MessageSquare,
-  ArrowLeft,
-  Home,
-  User,
-  Settings,
-  ChevronRight,
-  MessageCircleCode,
-} from 'lucide-react'
-import { Button } from '@/components/ui/button'
-
 import AppSideBar from '@/components/navbar/Sidebar'
 import { SidebarProvider } from '@/components/ui/sidebar'
 
@@ -55,7 +40,7 @@ export default async function WorkspaceLayout({
     .single()
 
   return (
-    <div className="flex bg-background overflow-hidden">
+    <div className="flex bg-background overflow-hidden top-16 h-[calc(100vh-65px)]">
       <SidebarProvider>
         <AppSideBar
           workspaceId={workspaceId}

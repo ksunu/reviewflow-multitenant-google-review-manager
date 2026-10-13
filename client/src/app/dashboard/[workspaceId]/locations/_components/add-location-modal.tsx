@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useMapsLibrary, Map, Marker } from '@vis.gl/react-google-maps'
 import {
   Dialog,
@@ -16,7 +16,6 @@ import { Label } from '@/components/ui/label'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { MapPin, Plus, Loader2, AlertCircle } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import { extractPrimaryBusinessType } from '@/lib/helpers/place-helpers'
 import { addLocationAction } from '@/app/actions/locations'
 
@@ -25,13 +24,13 @@ export default function AddLocationModal({
   setIsOpen,
   workspaceId,
   locations,
-  setLocations,
+  refetch,
 }: {
   isOpen: boolean
   setIsOpen: (open: boolean) => void
   workspaceId: string
   locations: any[]
-  setLocations: (locations: any[]) => void
+  refetch: (locations: any[]) => void
 }) {
   const router = useRouter()
 
@@ -150,7 +149,7 @@ export default function AddLocationModal({
       }
 
       // Reset form fields on success
-      setLocations([result, ...locations])
+      refetch()
       setName('')
       setAddress('')
       setGooglePlaceId('')

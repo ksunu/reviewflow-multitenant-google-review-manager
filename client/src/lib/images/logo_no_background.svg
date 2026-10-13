@@ -1,0 +1,26 @@
+<svg 
+  xmlns="http://www.w3.org/2000/svg" 
+  viewBox="0 0 100 100" 
+  width="40" 
+  height="40"
+>
+  <!-- Outer Speech Bubble Outline (Purple) -->
+  <path 
+    d="M 50 18 C 30 18 16 31 16 48 C 16 57 21 65 29 71 C 27 79 21 84 18 86 C 26 86 35 82 41 77 C 44 78 47 78 50 78 C 70 78 84 65 84 48 C 84 31 70 18 50 18 Z" 
+    fill="none" 
+    stroke="#7C3AED" 
+    stroke-width="6" 
+    stroke-linecap="round" 
+    stroke-linejoin="round"
+  />
+
+  <!-- Center Pulse Line (Purple) -->
+  <path 
+    d="M 28 48 L 39 48 L 45 37 L 55 59 L 61 48 L 72 48" 
+    fill="none" 
+    stroke="#7C3AED" 
+    stroke-width="6" 
+    stroke-linecap="round" 
+    stroke-linejoin="round"
+  />
+</svg>

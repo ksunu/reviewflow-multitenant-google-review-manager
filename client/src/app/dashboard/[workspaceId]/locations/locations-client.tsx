@@ -30,20 +30,26 @@ import { EmptyState } from '@/components/ui/empty-state'
 import { syncLocationReviews } from '@/app/actions/syncReviews'
 import { deleteLocationAction } from '@/app/actions/locations'
 import EditLocationModal from '@/app/dashboard/[workspaceId]/locations/_components/edit-location-modal'
+import { useLocations } from '@/hooks/use-locations'
 
 export default function WorkspaceLocationsClient({
   workspaceId,
   initialWorkspace,
-  initialLocations,
   workspaceRole,
 }: {
   workspaceId: string
   initialWorkspace: any
-  initialLocations: any[]
   workspaceRole: string
 }) {
   const router = useRouter()
-  const [locations, setLocations] = useState(initialLocations)
+  const {
+    data: locations,
+    isLoading,
+    isError,
+    error,
+    refetch,
+    isFetching,
+  } = useLocations(workspaceId)
   const [isOpen, setIsOpen] = useState(false)
   const [editingLocation, setEditingLocation] = useState<any>(null)
   const [syncingId, setSyncingId] = useState<string | null>(null)
@@ -79,7 +85,7 @@ export default function WorkspaceLocationsClient({
 
     const res = await deleteLocationAction(locId, workspaceId)
     if (res.success) {
-      setLocations(locations.filter((l) => l.id !== locId))
+      refetch()
     } else {
       alert(res.error || 'Failed to delete location')
     }
@@ -170,13 +176,13 @@ export default function WorkspaceLocationsClient({
                 setIsOpen={setIsOpen}
                 workspaceId={workspaceId}
                 locations={locations}
-                setLocations={setLocations}
+                refetch={refetch}
               />
             )}
           </div>
         </div>
 
-        {locations.length === 0 ? (
+        {locations?.length === 0 ? (
           <EmptyState
             icon={<MapPin className="w-6 h-6" />}
             title="No store locations yet"
@@ -184,15 +190,15 @@ export default function WorkspaceLocationsClient({
             actionLabel="Add First Location"
             onAction={() => setIsOpen(true)}
           />
-        ) : locations.length <= 3 ? (
+        ) : locations?.length <= 3 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {locations.map((loc) => renderLocationCard(loc))}
+            {locations?.map((loc) => renderLocationCard(loc))}
           </div>
         ) : (
           <div className="px-6 md:px-12">
             <Carousel opts={{ align: 'start', loop: false }} className="w-full">
               <CarouselContent className="-ml-4">
-                {locations.map((loc) => (
+                {locations?.map((loc) => (
                   <CarouselItem
                     key={loc.id}
                     className="pl-4 md:basis-1/2 lg:basis-1/3"
@@ -207,18 +213,14 @@ export default function WorkspaceLocationsClient({
           </div>
         )}
 
-        {locations.length > 0 && <GoogleMaps locations={locations} />}
+        {locations?.length > 0 && <GoogleMaps locations={locations} />}
       </div>
       <EditLocationModal
         workspaceId={workspaceId}
         location={editingLocation}
         isOpen={!!editingLocation}
         onClose={() => setEditingLocation(null)}
-        onUpdated={(updatedLoc) => {
-          setLocations(
-            locations.map((l) => (l.id === updatedLoc.id ? updatedLoc : l)),
-          )
-        }}
+        onUpdated={refetch}
       />
     </APIProvider>
   )

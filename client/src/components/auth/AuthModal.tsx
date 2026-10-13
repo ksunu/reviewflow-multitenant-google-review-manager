@@ -120,7 +120,7 @@ export function AuthModal({
           <Button
             type="submit"
             disabled={loading}
-            className="w-full py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-md transition shadow-sm text-sm disabled:opacity-50 cursor-pointer"
+            className="w-full py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-md transition shadow-sm text-sm disabled:opacity-50"
           >
             {loading
               ? t('auth.processing')
