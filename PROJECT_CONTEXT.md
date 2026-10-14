@@ -30,7 +30,12 @@ Next.js project guidance is in `client/AGENTS.md`. It requires checking the inst
 
 ## Supabase data model
 
-The user supplied a live Supabase schema inventory on 2026-10-14. Treat the details below as observed state, not as a migration. Confirm the live database again before changing SQL.
+The pulled schema under `client/supabase/migrations/` is now the project’s database reference. Read the migration files before any database refactor and keep this summary aligned with them. They capture Supabase state; confirm the live database before applying further changes.
+
+- `20261014004753_remote_schema.sql` contains the full captured core schema: tables, indexes/constraints, helper/RPC function definitions, `workspace_review_stats`, role grants, and workspace RLS policies.
+- `20261014031231_remote_schema.sql` captures the revokes that remove `anon` and `authenticated` access to legacy `tenants` and `tenant_users`.
+- `20261014002043_remote_schema.sql` is empty (0 bytes); it contains no schema definitions.
+- Treat these pulled files as the baseline/reference; add future database changes as new timestamped migrations rather than rewriting the pulled snapshots. Check whether the desired change is already represented before proposing SQL.
 
 - `workspaces`: `id` (UUID PK), `name`, `slug` (unique), `created_at`, `business_type`, `ai_replies_used_this_month` (default 0), and `ai_reply_limit` (default 10). The live inventory does **not** include `subscription_tier`, `language`, or a direct tenant relationship.
 - `workspace_members`: `id` (UUID PK), `workspace_id`, `user_id`, `role` (`owner`, `admin`, `member`, default `member`), and `created_at`. `(workspace_id, user_id)` is unique; role has a check constraint; workspace and auth user references cascade on delete.
@@ -40,13 +45,20 @@ The user supplied a live Supabase schema inventory on 2026-10-14. Treat the deta
 
 ### Live RLS and policy notes
 
-- In the user's subsequently applied SQL, RLS remains enabled but not forced on `locations`, `reviews`, `tenant_users`, `tenants`, `workspace_members`, and `workspaces`.
-- The applied SQL replaces overlapping workspace policies with member SELECT and admin UPDATE/DELETE policies on `workspaces`; member SELECT and admin INSERT/DELETE policies on `workspace_members`; and one workspace-scoped `FOR ALL` policy on each of `locations` and `reviews`. The policy expressions call the authorization helpers through scalar subqueries.
-- The SQL drops the permissive legacy `tenants` and `tenant_users` policies and revokes all table privileges from `PUBLIC`, `anon`, and `authenticated`. These tables and their rows remain for legacy `operational_digests` data; the app must use workspaces for new customer data.
-- `user_belongs_to_workspace(uuid)`, `check_user_workspace_role(uuid,uuid,text)`, `create_workspace(text,text)`, and `create_workspace_with_location(text,text,text)` are `SECURITY DEFINER` with an empty `search_path` and fully qualified table references. The membership-role helper also requires its `p_user_id` to equal `auth.uid()`. Execute is revoked from `PUBLIC` and `anon` and granted to `authenticated`.
-- The applied SQL adds `locations(id, workspace_id)` uniqueness and a composite `reviews(location_id, workspace_id)` foreign key to that pair, with cascading delete. It first checks for mismatched existing review/location workspace IDs and aborts if any are found. The old single-column `reviews_location_id_fkey` is dropped; the separate review-to-workspace FK remains.
-- The review uniqueness identity appears redundantly constrained: both `reviews_unique_constraint` and `reviews_unique_natural_key` enforce `(workspace_id, location_id, review_date, author_name)`. The user also previously confirmed a unique index named `reviews_workspace_location_review_identity_idx` on those same columns. The inventory query did not enumerate indexes, so inspect actual index definitions before removing or renaming any duplicate.
+- RLS is enabled (not forced) on `locations`, `operational_digests`, `reviews`, `tenant_users`, `tenants`, `user_integrations`, `workspace_members`, and `workspaces`. `locations` and `reviews` have workspace-member `FOR ALL` policies; `workspaces` has member SELECT and admin UPDATE/DELETE; `workspace_members` has member SELECT and admin INSERT/DELETE. `user_integrations` has a self-only `FOR ALL` policy. `operational_digests` has no policy in the captured schema.
+- The captured `workspace_members_insert_admin` policy only checks that the acting user is an admin/owner; it does not constrain the inserted `user_id` or `role` beyond the table’s role CHECK. Thus an admin can assign another user the `owner` role. `workspace_members_delete_admin` likewise permits admins to delete owner rows, including the last owner. Treat this as a verified authorization gap; any change should preserve intended team workflows while restricting owner-role assignment/removal.
+- The full snapshot grants broad table privileges, including `TRUNCATE`, to `anon` and `authenticated` on several RLS-protected tables (`locations`, `reviews`, `workspace_members`, `workspaces`, `operational_digests`, and `user_integrations`). RLS does not govern `TRUNCATE`; this is a high-priority grant issue to address with a new migration and verify against live privileges. The later revoke snapshot removes all privileges from `anon` and `authenticated` only for `tenants` and `tenant_users`.
+- The pulled SQL drops the permissive legacy `tenants` and `tenant_users` policies and revokes their privileges from `PUBLIC`, `anon`, and `authenticated`. Keep these tables for legacy `operational_digests`; use workspaces for new customer data.
+- `user_belongs_to_workspace(uuid)`, `check_user_workspace_role(uuid,uuid,text)`, `create_workspace(text,text)`, and `create_workspace_with_location(text,text,text)` are `SECURITY DEFINER` with an empty `search_path` and qualified table references. The role helper requires `p_user_id = auth.uid()`. The pulled migration files do not include explicit EXECUTE ACL statements for these functions; verify live function privileges before relying on an earlier manually run grant/revoke script.
+- The snapshot enforces location/workspace consistency using unique `(locations.id, locations.workspace_id)` and composite `reviews(location_id, workspace_id)` FK constraints with cascading delete. The separate review-to-workspace FK remains.
+- The full snapshot contains **three** unique indexes on the same review identity `(workspace_id, location_id, review_date, author_name)`: `reviews_unique_constraint`, `reviews_unique_natural_key`, and `reviews_workspace_location_review_identity_idx`. The first two are also named UNIQUE constraints. Do not drop any until index inference and the app’s `ON CONFLICT` target are checked against live state.
 - Observed delete behavior includes cascading workspace deletion to locations/members/reviews and location deletion to reviews. Tenant deletion cascades to tenant memberships and operational digests.
+
+### Analytics view
+
+- `public.workspace_review_stats` groups by `locations.workspace_id`, counts joined reviews, computes average rating rounded to two decimals, counts positive/neutral/negative sentiment, and counts `reply_status = 'posted'`.
+- It joins reviews to locations on `location_id`; the composite FK makes cross-workspace mismatches impossible when constraints are valid. Workspaces without locations do not get a view row. The view does not expose the `NULL`/not-analyzed sentiment count; the sentiment chart queries `reviews` directly.
+- The view definition does not specify `security_invoker = true`, so PostgreSQL’s default view-owner permission behavior can bypass base-table RLS if the caller has SELECT on the view. The captured SQL contains no explicit grant on this view, even though `use-workspace-stats.ts` queries it. Verify live view privileges and security mode. If exposed to authenticated users, use an invoker-secured view (or an equivalently safe access rule) and explicitly grant only the intended role.
 
 ### Database functions and indexes expected by the app
 
@@ -56,8 +68,6 @@ The user supplied a live Supabase schema inventory on 2026-10-14. Treat the deta
 - `public.reviews_workspace_location_review_identity_idx` is a unique index on `(workspace_id, location_id, review_date, author_name)`. The user confirmed this exact index exists in Supabase. Review sync uses it as its upsert conflict target and ignores duplicates to preserve existing replies/statuses.
 - The 2026-10-14 inventory also reports two unique constraints on the same review identity columns (`reviews_unique_constraint`, `reviews_unique_natural_key`). Do not drop constraints/indexes until the live index list and migration history clarify which definitions are redundant and which name the app's `ON CONFLICT` target relies on.
 - The confirmed RPC and unique review index exist in Supabase; the RPC update is versioned in `supabase/migrations/202610130001_allow_unanalyzed_ai_reply.sql`. Keep future database schema changes in versioned migrations.
-
-The user applied additional workspace authorization and onboarding SQL directly in Supabase. The corresponding SQL was shared in chat; verify that it is recorded in the repository's migration history before relying on a clean database setup to reproduce it.
 
 ## External services and environment variables
 
