@@ -175,8 +175,8 @@ export default function WorkspaceLocationsClient({
                 isOpen={isOpen}
                 setIsOpen={setIsOpen}
                 workspaceId={workspaceId}
-                locations={locations}
-                refetch={refetch}
+                locations={locations ?? []}
+                refetch={() => { void refetch() }}
               />
             )}
           </div>
@@ -222,7 +222,7 @@ export default function WorkspaceLocationsClient({
         location={editingLocation}
         isOpen={!!editingLocation}
         onClose={() => setEditingLocation(null)}
-        onUpdated={refetch}
+        onUpdated={() => { void refetch() }}
       />
     </APIProvider>
   )

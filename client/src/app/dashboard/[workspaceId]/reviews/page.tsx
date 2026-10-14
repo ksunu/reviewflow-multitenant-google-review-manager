@@ -179,9 +179,9 @@ export default function WorkspaceReviewsPage() {
           {/* Location Filter */}
           <Select
             value={selectedLocation}
-            onValueChange={(val) =>
-              updateQueryParam({ location: val, page: '1' })
-            }
+            onValueChange={(val) => {
+              if (val !== null) updateQueryParam({ location: val, page: '1' })
+            }}
           >
             <SelectTrigger className="w-[180px]">
               <Store className="w-4 h-4 mr-2 text-muted-foreground" />
@@ -200,9 +200,9 @@ export default function WorkspaceReviewsPage() {
           {/* Status Filter */}
           <Select
             value={selectedStatus}
-            onValueChange={(val) =>
-              updateQueryParam({ status: val, page: '1' })
-            }
+            onValueChange={(val) => {
+              if (val !== null) updateQueryParam({ status: val, page: '1' })
+            }}
           >
             <SelectTrigger className="w-[150px]">
               <Filter className="w-4 h-4 mr-2 text-muted-foreground" />
@@ -219,9 +219,9 @@ export default function WorkspaceReviewsPage() {
           {/* Rows per page selector */}
           <Select
             value={pageSize.toString()}
-            onValueChange={(val) =>
-              updateQueryParam({ pageSize: val, page: '1' })
-            }
+            onValueChange={(val) => {
+              if (val !== null) updateQueryParam({ pageSize: val, page: '1' })
+            }}
           >
             <SelectTrigger className="w-[90px]">
               <SelectValue placeholder="10 / page" />

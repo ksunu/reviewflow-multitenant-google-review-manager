@@ -30,7 +30,7 @@ export default function AddLocationModal({
   setIsOpen: (open: boolean) => void
   workspaceId: string
   locations: any[]
-  refetch: (locations: any[]) => void
+  refetch: () => void
 }) {
   const router = useRouter()
 
@@ -149,7 +149,7 @@ export default function AddLocationModal({
       }
 
       // Reset form fields on success
-      refetch()
+      void refetch()
       setName('')
       setAddress('')
       setGooglePlaceId('')

@@ -167,7 +167,12 @@ export function AIReplyDialog({
             <Label htmlFor="tone" className="text-xs font-medium">
               Response Tone
             </Label>
-            <Select value={tone} onValueChange={setTone}>
+            <Select
+              value={tone}
+              onValueChange={(value) => {
+                if (value !== null) setTone(value)
+              }}
+            >
               <SelectTrigger id="tone" className="text-xs">
                 <SelectValue placeholder="Select tone" />
               </SelectTrigger>

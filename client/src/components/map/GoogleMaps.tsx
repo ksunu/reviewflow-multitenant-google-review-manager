@@ -104,7 +104,7 @@ export default function GoogleMaps({ locations = [] }: GoogleMapsProps) {
         defaultZoom={12}
         mapId={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || 'DEMO_MAP_ID'}
         gestureHandling={'greedy'}
-        disableFullscreenControl={false}
+        fullscreenControl={false}
       >
         <MapBoundsController locations={locations} />
         {validLocations.map((loc, index) => {

@@ -48,7 +48,7 @@ export default function NewWorkspacePage() {
         .replace(/[\s_-]+/g, '-')
 
       // Call the secure Postgres function (RPC)
-      const { data: workspace, error: rpcError } = await supabase
+      const { data, error: rpcError } = await supabase
         .rpc('create_workspace', {
           p_name: name.trim(),
           p_slug: slug,
@@ -56,6 +56,7 @@ export default function NewWorkspacePage() {
         .single()
 
       if (rpcError) throw rpcError
+      const workspace = data as { id: string } | null
       if (!workspace) throw new Error('Failed to create workspace.')
 
       // Redirect to the newly created workspace dashboard
