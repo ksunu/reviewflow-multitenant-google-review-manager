@@ -1,45 +1,63 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { getCurrentUser } from '@/lib/supabase/user'
+import { createClient } from '@/lib/supabase/server'
 
-export async function completeOnboarding(formData: FormData) {
+export interface OnboardingState {
+  error: string | null
+}
+
+export async function completeOnboarding(
+  _previousState: OnboardingState,
+  formData: FormData,
+): Promise<OnboardingState> {
   const supabase = await createClient()
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser()
 
-  // 1. Get the currently logged-in user
-  const user = await getCurrentUser()
-  if (!user) redirect('/')
+  if (authError || !user) redirect('/')
 
-  const businessName = (formData.get('businessName') as string) || 'My Business'
+  const businessName = formData.get('businessName')
+  const locationName = formData.get('locationName')
 
-  // 2. Insert the new tenant workspace
-  const { data: tenant, error: tenantError } = await supabase
-    .from('tenants')
-    .insert({
-      name: businessName,
-      subscription_status: 'active',
+  if (
+    typeof businessName !== 'string' ||
+    typeof locationName !== 'string' ||
+    !businessName.trim() ||
+    !locationName.trim()
+  ) {
+    return { error: 'Enter a workspace name and an initial location name.' }
+  }
+
+  const name = businessName.trim()
+  const slug = name
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, '')
+    .replace(/[\s_-]+/g, '-')
+  if (!slug) {
+    return { error: 'The workspace name must include a letter or number.' }
+  }
+
+  const { data, error } = await supabase
+    .rpc('create_workspace_with_location', {
+      p_name: name,
+      p_slug: slug,
+      p_location_name: locationName.trim(),
     })
-    .select()
     .single()
 
-  if (tenantError || !tenant) {
-    console.error('Error creating tenant:', tenantError?.message)
-    return { error: 'Failed to create business workspace.' }
+  if (
+    error ||
+    !data ||
+    typeof data !== 'object' ||
+    !('id' in data) ||
+    typeof data.id !== 'string'
+  ) {
+    console.error('Failed to complete workspace onboarding:', error?.message)
+    return { error: 'Failed to create your workspace. Please try again.' }
   }
 
-  // 3. CRITICAL: Link the user to the new tenant in the tenant_users table!
-  const { error: memberError } = await supabase.from('tenant_users').insert({
-    tenant_id: tenant.id,
-    user_id: user.id,
-    role: 'owner', // or 'admin'
-  })
-
-  if (memberError) {
-    console.error('Error linking user to tenant:', memberError.message)
-    return { error: 'Failed to assign user to workspace.' }
-  }
-
-  // 4. Success! Redirect the user to the dashboard
-  redirect('/dashboard')
+  redirect(`/dashboard/${data.id}`)
 }

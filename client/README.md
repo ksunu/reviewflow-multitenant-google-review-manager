@@ -18,6 +18,13 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
+## Testing
+
+Install dependencies from `client/` with `yarn install`, then run the unit and
+component tests with `npm run test`. Tests use Vitest, Testing Library, and
+jsdom. The pull request CI workflow also runs `npm run lint` and
+`npm run build`.
+
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
 ## Learn More

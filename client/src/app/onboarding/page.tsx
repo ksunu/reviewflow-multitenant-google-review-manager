@@ -1,6 +1,13 @@
+'use client'
+
+import { useActionState } from 'react'
 import { completeOnboarding } from './actions'
 
 export default function OnboardingPage() {
+  const [state, action, pending] = useActionState(completeOnboarding, {
+    error: null,
+  })
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <div className="max-w-md w-full bg-card text-card-foreground rounded-xl shadow-xl shadow-black/20 p-8 space-y-6 border border-border">
@@ -16,7 +23,12 @@ export default function OnboardingPage() {
           </p>
         </div>
 
-        <form action={completeOnboarding} className="space-y-4">
+        <form action={action} className="space-y-4">
+          {state.error && (
+            <p role="alert" className="text-sm text-destructive">
+              {state.error}
+            </p>
+          )}
           <div>
             <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1">
               Business / Brand Name
@@ -59,9 +71,10 @@ export default function OnboardingPage() {
 
           <button
             type="submit"
+            disabled={pending}
             className="w-full py-2.5 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-md transition shadow-sm shadow-primary/20 text-sm"
           >
-            Complete Setup & Launch Dashboard →
+            {pending ? 'Setting up workspace...' : 'Complete Setup & Launch Dashboard →'}
           </button>
         </form>
       </div>

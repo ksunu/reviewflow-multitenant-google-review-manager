@@ -21,7 +21,7 @@ Next.js project guidance is in `client/AGENTS.md`. It requires checking the inst
 ## Main user flows
 
 1. **Sign-in and registration:** `client/src/app/page.tsx` opens `AuthModal`. `AuthModal` uses Supabase email/password sign-up and sign-in.
-2. **Workspace selection and creation:** `/dashboard` loads the user’s workspace memberships. `/dashboard/new` calls the `create_workspace` Supabase RPC. Workspace pages are under `/dashboard/[workspaceId]`.
+2. **Workspace selection and creation:** `/dashboard` loads the user’s workspace memberships. `/dashboard/new` calls the `create_workspace` Supabase RPC. `/onboarding` calls `create_workspace_with_location` to atomically create the workspace, owner membership, and initial location. Workspace pages are under `/dashboard/[workspaceId]`.
 3. **Workspace access:** `getWorkspaceAuthorization` in `client/src/lib/supabase/authorization.ts` verifies the current Supabase user and their `workspace_members` row. Server Actions and Route Handlers should enforce access themselves; do not rely only on a layout check.
 4. **Locations:** the workspace locations page loads locations and passes them to `locations-client.tsx`. Add/edit/delete operations use `client/src/app/actions/locations.ts`; the add-location UI uses Google Maps/Places components.
 5. **Review sync:** `syncLocationReviews` in `client/src/app/actions/syncReviews.ts` authorizes workspace membership, loads the selected location, requests Google Places reviews, validates rating/timestamp values, inserts unseen rows, and updates `locations.last_synced_at`. The review page calls this action and reports the number inserted.
@@ -36,7 +36,7 @@ The following summarizes the schema shared by the user for debugging. Confirm th
 - `workspace_members`: `workspace_id`, `user_id`, and role (`owner`, `admin`, `member`); `user_id` references `auth.users`.
 - `locations`: workspace ownership, name, Google Place ID, address/coordinates, business type, `last_synced_at`.
 - `reviews`: workspace/location ownership, rating, author, review content/date, sentiment, AI draft, status, reply status, and Google metadata. In the shared schema, `review_date` is `text`; `sentiment` is nullable `text` (not an enum/check-constrained column). Expected analyzed values are `positive`, `neutral`, and `negative`; `NULL` means the review has not been analyzed.
-- `tenants`, `tenant_users`, and `operational_digests` also exist in the supplied schema, but no workspace-to-tenant relationship was shown. Do not assume tenant subscription state can be used for a workspace until that relationship is established.
+- `tenants`, `tenant_users`, and `operational_digests` also exist in the supplied schema, but no workspace-to-tenant relationship was shown. The canonical model is `workspaces` / `workspace_members`. Migration `202610140001_consolidate_workspace_rls.sql` disables client-role access to the legacy tenant tables but retains their rows because `operational_digests` still references `tenants`; do not drop those tables until dependent data has been migrated or archived.
 - RLS policies refer to helpers such as `user_belongs_to_workspace` and `check_user_workspace_role`; some supplied policy expressions also query `workspace_members` directly.
 
 ### Database functions and indexes expected by the app
