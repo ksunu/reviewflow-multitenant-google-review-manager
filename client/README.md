@@ -16,6 +16,18 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## Testing
+
+Run the automated tests from this directory:
+
+```bash
+npm run test
+# or
+yarn test
+```
+
+Vitest runs server-side authorization and AI reply route tests, plus React Testing Library coverage for workspace-scoped analytics queries. Tests use mocked Supabase clients; they do not exercise live database RLS or RPC execution. Pull requests to `main` run tests alongside lint and build in `.github/workflows/ci.yml`.
+
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
