@@ -37,10 +37,12 @@ export async function POST(
     if (error) throw error
 
     return NextResponse.json({ success: true, location: newLocation })
-  } catch (err: any) {
+  } catch (err) {
     console.error('Location creation error:', err)
     return NextResponse.json(
-      { error: err.message || 'Failed to save location' },
+      {
+        error: err instanceof Error ? err.message : 'Failed to save location',
+      },
       { status: 500 },
     )
   }

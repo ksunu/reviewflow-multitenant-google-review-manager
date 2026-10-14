@@ -34,6 +34,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import type { User } from '@supabase/supabase-js'
+import type { Workspace } from '@/types/models'
 
 export default function AppSidebar({
   workspaceId,
@@ -41,8 +43,8 @@ export default function AppSidebar({
   user,
 }: {
   workspaceId: string
-  workspace: any
-  user: any
+  workspace: Pick<Workspace, 'id' | 'name'>
+  user: Pick<User, 'email'> | null
 }) {
   const items = [
     {

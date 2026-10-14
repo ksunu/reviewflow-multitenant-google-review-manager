@@ -112,10 +112,12 @@ export async function POST(
     if (insertError) throw insertError
 
     return NextResponse.json({ success: true, review: newReview })
-  } catch (err: any) {
+  } catch (err) {
     console.error('Sync error:', err)
     return NextResponse.json(
-      { error: err.message || 'Failed to sync reviews' },
+      {
+        error: err instanceof Error ? err.message : 'Failed to sync reviews',
+      },
       { status: 500 },
     )
   }

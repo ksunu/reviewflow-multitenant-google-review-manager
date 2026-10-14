@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { updateLocationAction } from '@/app/actions/locations'
 import { Loader2 } from 'lucide-react'
+import type { Location } from '@/types/models'
 
 export default function EditLocationModal({
   workspaceId,
@@ -22,21 +23,14 @@ export default function EditLocationModal({
   onUpdated,
 }: {
   workspaceId: string
-  location: any
+  location: Location | null
   isOpen: boolean
   onClose: () => void
-  onUpdated: (updatedLocation: any) => void
+  onUpdated: (updatedLocation: Location) => void
 }) {
-  const [name, setName] = useState('')
-  const [address, setAddress] = useState('')
+  const [name, setName] = useState(location?.name ?? '')
+  const [address, setAddress] = useState(location?.address ?? '')
   const [loading, setLoading] = useState(false)
-
-  useEffect(() => {
-    if (location) {
-      setName(location.name || '')
-      setAddress(location.address || '')
-    }
-  }, [location])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

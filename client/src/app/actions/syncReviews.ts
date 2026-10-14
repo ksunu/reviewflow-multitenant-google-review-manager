@@ -92,7 +92,10 @@ export async function syncLocationReviews(
       )
     }
 
-    const googleReviews = data.result?.reviews || []
+    const placesResponse = data as typeof data & {
+      result?: { reviews?: GooglePlacesReview[] }
+    }
+    const googleReviews = placesResponse.result?.reviews || []
     if (!Array.isArray(googleReviews)) {
       throw new Error('Google Places returned an invalid reviews response.')
     }
@@ -114,8 +117,7 @@ export async function syncLocationReviews(
     }
 
     // 7. Format and filter incoming Google Places reviews
-    const reviewsToUpsert = googleReviews
-      .map((rev: any) => {
+    const formattedReviews = googleReviews.map((rev: GooglePlacesReview) => {
         if (
           !Number.isInteger(rev.rating) ||
           rev.rating < 1 ||
@@ -143,7 +145,7 @@ export async function syncLocationReviews(
           reply_status: 'unreplied',
         }
       })
-      .filter((rev: any) => {
+    const reviewsToUpsert = formattedReviews.filter((rev) => {
         const reviewTime = new Date(rev.review_date).getTime()
         // Incremental check: only process new reviews
         return lastSyncTimestamp === 0 || reviewTime >= lastSyncTimestamp
@@ -174,8 +176,12 @@ export async function syncLocationReviews(
     if (syncTimestampError) throw syncTimestampError
 
     return { success: true, count: insertedCount }
-  } catch (err: any) {
+  } catch (err) {
     console.error('Google Places review sync error:', err)
-    return { success: false, error: err.message || 'Failed to sync reviews.' }
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : 'Failed to sync reviews.',
+    }
   }
 }
+import type { GooglePlacesReview } from '@/types/models'

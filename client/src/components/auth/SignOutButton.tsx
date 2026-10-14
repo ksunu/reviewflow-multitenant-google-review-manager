@@ -7,7 +7,11 @@ import {
 import { Button } from '@/components/ui/button'
 import { useTranslation } from 'react-i18next'
 
-export function SignOutButton({ handleSignOut }: any) {
+export function SignOutButton({
+  handleSignOut,
+}: {
+  handleSignOut: () => void | Promise<void>
+}) {
   const { t } = useTranslation()
   return (
     <Popover>

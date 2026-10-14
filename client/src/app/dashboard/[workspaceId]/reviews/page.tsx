@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import {
   useParams,
   useRouter,
@@ -29,6 +29,7 @@ import { EmptyState } from '@/components/ui/empty-state'
 import { toast } from 'sonner'
 import { syncLocationReviews } from '@/app/actions/syncReviews'
 import ReviewCard from '@/app/dashboard/[workspaceId]/reviews/_components/review-card'
+import type { Location, Review } from '@/types/models'
 
 export default function WorkspaceReviewsPage() {
   const params = useParams()
@@ -37,7 +38,7 @@ export default function WorkspaceReviewsPage() {
   const searchParams = useSearchParams()
 
   const workspaceId = params.workspaceId as string
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
 
   // Read search params for pagination & filters
   const page = Number(searchParams.get('page')) || 1
@@ -45,8 +46,8 @@ export default function WorkspaceReviewsPage() {
   const selectedLocation = searchParams.get('location') || 'all'
   const selectedStatus = searchParams.get('status') || 'all'
 
-  const [reviews, setReviews] = useState<any[]>([])
-  const [locations, setLocations] = useState<any[]>([])
+  const [reviews, setReviews] = useState<Review[]>([])
+  const [locations, setLocations] = useState<Pick<Location, 'id' | 'name'>[]>([])
   const [totalCount, setTotalCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const [syncing, setSyncing] = useState(false)
@@ -99,7 +100,7 @@ export default function WorkspaceReviewsPage() {
     }
   }
 
-  const loadReviewsData = async () => {
+  const loadReviewsData = useCallback(async () => {
     try {
       setLoading(true)
       if (locations.length === 0) {
@@ -108,7 +109,7 @@ export default function WorkspaceReviewsPage() {
           .select('id, name')
           .eq('workspace_id', workspaceId)
 
-        setLocations(locs || [])
+        setLocations((locs || []) as Pick<Location, 'id' | 'name'>[])
       }
 
       const from = (page - 1) * pageSize
@@ -138,18 +139,18 @@ export default function WorkspaceReviewsPage() {
       const { data: revs, count, error } = await query
       if (error) throw error
 
-      setReviews(revs || [])
+      setReviews((revs || []) as Review[])
       setTotalCount(count || 0)
     } catch (err) {
       console.error('Error loading reviews:', err)
     } finally {
       setLoading(false)
     }
-  }
+  }, [locations.length, page, pageSize, selectedLocation, selectedStatus, supabase, workspaceId])
 
   useEffect(() => {
-    loadReviewsData()
-  }, [workspaceId, page, pageSize, selectedLocation, selectedStatus])
+    void Promise.resolve().then(loadReviewsData)
+  }, [loadReviewsData])
 
   return (
     // Fill the dashboard main area so pagination stays visible below the review scroller.

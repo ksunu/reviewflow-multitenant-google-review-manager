@@ -16,6 +16,7 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import Link from 'next/link'
+import type { CreateWorkspaceResult } from '@/types/models'
 
 export default function NewWorkspacePage() {
   const router = useRouter()
@@ -56,15 +57,17 @@ export default function NewWorkspacePage() {
         .single()
 
       if (rpcError) throw rpcError
-      const workspace = data as { id: string } | null
+      const workspace = data as CreateWorkspaceResult | null
       if (!workspace) throw new Error('Failed to create workspace.')
 
       // Redirect to the newly created workspace dashboard
       router.push(`/dashboard/${workspace.id}`)
       router.refresh()
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error creating workspace:', err)
-      setError(err.message || 'Something went wrong. Please try again.')
+      setError(
+        err instanceof Error ? err.message : 'Something went wrong. Please try again.',
+      )
       setLoading(false)
     }
   }

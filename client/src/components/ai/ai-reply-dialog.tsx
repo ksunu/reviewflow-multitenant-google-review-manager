@@ -24,15 +24,11 @@ import {
 } from '@/components/ui/select'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
+import type { AIReplyReview } from '@/types/models'
 
 interface AIReplyDialogProps {
   workspaceId: string
-  review: {
-    id: string
-    rating: number
-    review_text: string
-    author_name: string
-  }
+  review: AIReplyReview
   onReplySaved?: () => void
 }
 
@@ -76,9 +72,9 @@ export function AIReplyDialog({
 
       setGeneratedReply(data.reply)
       toast.success('AI reply generated successfully!')
-    } catch (err: any) {
+    } catch (err) {
       console.error(err)
-      toast.error(err.message || 'Failed to generate response.')
+      toast.error(err instanceof Error ? err.message : 'Failed to generate response.')
     } finally {
       setLoading(false)
     }
@@ -112,9 +108,9 @@ export function AIReplyDialog({
       } else {
         window.location.reload()
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error('Save error:', err)
-      toast.error(err.message || 'Failed to save response.', { id: toastId })
+      toast.error(err instanceof Error ? err.message : 'Failed to save response.', { id: toastId })
     } finally {
       setSaving(false)
     }

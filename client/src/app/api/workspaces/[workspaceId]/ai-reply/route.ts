@@ -185,7 +185,6 @@ export async function POST(
 
     const companyName = workspace?.name || 'our business'
     const locationName = review?.locations?.name || 'this location'
-    const locationAddress = review?.locations?.address || ''
     const businessType =
       review?.locations?.business_type ||
       workspace?.business_type ||
@@ -268,7 +267,7 @@ Guidelines:
           rawReply = ollamaData.response.trim()
         }
       }
-    } catch (ollamaErr) {
+    } catch {
       console.log(
         'Local Ollama unavailable, falling back to OpenAI gpt-4o-mini.',
       )

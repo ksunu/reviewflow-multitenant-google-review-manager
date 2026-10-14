@@ -16,7 +16,7 @@ export function useWorkspaceStats(
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
 
   // 1. Memoize workspace IDs key so reference stays identical across parent re-renders
   const workspaceIdsKey = useMemo(() => {
@@ -131,9 +131,9 @@ export function useWorkspaceStats(
         { rating: 2, count: counts[2] },
         { rating: 1, count: counts[1] },
       ])
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error fetching workspace stats:', err)
-      setError(err.message || 'Failed to load analytics stats')
+      setError(err instanceof Error ? err.message : 'Failed to load analytics stats')
     } finally {
       setLoading(false)
     }
@@ -141,7 +141,7 @@ export function useWorkspaceStats(
 
   // 4. Trigger fetch ONLY when workspaceIdsKey or selectedWorkspaceId actually changes
   useEffect(() => {
-    fetchStats()
+    void Promise.resolve().then(fetchStats)
   }, [fetchStats])
 
   return { stats, ratingDistribution, loading, error, refetch: fetchStats }

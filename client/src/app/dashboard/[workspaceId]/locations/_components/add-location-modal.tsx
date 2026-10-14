@@ -18,6 +18,7 @@ import { MapPin, Plus, Loader2, AlertCircle } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { extractPrimaryBusinessType } from '@/lib/helpers/place-helpers'
 import { addLocationAction } from '@/app/actions/locations'
+import type { Location } from '@/types/models'
 
 export default function AddLocationModal({
   isOpen,
@@ -29,7 +30,7 @@ export default function AddLocationModal({
   isOpen: boolean
   setIsOpen: (open: boolean) => void
   workspaceId: string
-  locations: any[]
+  locations: Location[]
   refetch: () => void
 }) {
   const router = useRouter()
@@ -159,9 +160,9 @@ export default function AddLocationModal({
       setIsOpen(false)
 
       router.refresh()
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error creating location:', err)
-      setError(err.message || 'Failed to create location.')
+      setError(err instanceof Error ? err.message : 'Failed to create location.')
     } finally {
       setSubmitting(false)
     }

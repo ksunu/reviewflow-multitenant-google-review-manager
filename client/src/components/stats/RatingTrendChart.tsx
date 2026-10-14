@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import {
   Area,
   AreaChart,
@@ -37,9 +37,7 @@ export function RatingTrendChart({
 }: RatingTrendChartProps) {
   const [trendData, setTrendData] = useState<TrendDataPoint[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
 
   const fetchTrendData = useCallback(async () => {
     if (!workspaceIds.length) {
@@ -50,7 +48,6 @@ export function RatingTrendChart({
 
     try {
       setLoading(true)
-      setError(null)
 
       const isAll = selectedWorkspaceId === 'all'
       const targetIds = isAll ? workspaceIds : [selectedWorkspaceId]
@@ -106,16 +103,16 @@ export function RatingTrendChart({
       )
 
       setTrendData(formatted)
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error fetching trend data:', err)
-      setError(err.message || 'Failed to load trend analytics')
+      console.error(err instanceof Error ? err.message : 'Failed to load trend analytics')
     } finally {
       setLoading(false)
     }
   }, [workspaceIds, selectedWorkspaceId, supabase])
 
   useEffect(() => {
-    fetchTrendData()
+    void Promise.resolve().then(fetchTrendData)
   }, [fetchTrendData])
 
   return (

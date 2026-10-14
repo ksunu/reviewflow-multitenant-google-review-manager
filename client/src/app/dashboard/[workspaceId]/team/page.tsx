@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Users, UserPlus, Shield, Trash2, Loader2, Mail } from 'lucide-react'
+import { Users, UserPlus, Shield, Loader2, Mail } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -16,13 +16,14 @@ import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
 import { EmptyState } from '@/components/ui/empty-state'
+import type { WorkspaceMember } from '@/types/models'
 
 export default function WorkspaceTeamPage() {
   const params = useParams()
   const workspaceId = params.workspaceId as string
   const supabase = createClient()
 
-  const [members, setMembers] = useState<any[]>([])
+  const [members, setMembers] = useState<WorkspaceMember[]>([])
   const [loading, setLoading] = useState(true)
   const [inviteEmail, setInviteEmail] = useState('')
   const [inviting, setInviting] = useState(false)
@@ -60,7 +61,7 @@ export default function WorkspaceTeamPage() {
       // For the MVP flow, we simulate adding the user email directly or showing success feedback.
       toast.success(`Invitation sent successfully to ${inviteEmail}!`)
       setInviteEmail('')
-    } catch (err) {
+    } catch {
       toast.error('Failed to send invitation.')
     } finally {
       setInviting(false)
@@ -95,7 +96,7 @@ export default function WorkspaceTeamPage() {
             <UserPlus className="w-5 h-5 text-primary" /> Invite New Member
           </CardTitle>
           <CardDescription>
-            Enter your team member's email address to grant them access to this
+            Enter your team member&apos;s email address to grant them access to this
             workspace.
           </CardDescription>
         </CardHeader>

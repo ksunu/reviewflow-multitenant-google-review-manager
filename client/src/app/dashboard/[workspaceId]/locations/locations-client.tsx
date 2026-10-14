@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { MapPin, MoreVertical, Pencil, Trash2, Loader2 } from 'lucide-react'
+import { MapPin, MoreVertical, Pencil, Trash2 } from 'lucide-react'
 import {
   Card,
   CardContent,
@@ -31,6 +31,7 @@ import { syncLocationReviews } from '@/app/actions/syncReviews'
 import { deleteLocationAction } from '@/app/actions/locations'
 import EditLocationModal from '@/app/dashboard/[workspaceId]/locations/_components/edit-location-modal'
 import { useLocations } from '@/hooks/use-locations'
+import type { Location, Workspace } from '@/types/models'
 
 export default function WorkspaceLocationsClient({
   workspaceId,
@@ -38,25 +39,21 @@ export default function WorkspaceLocationsClient({
   workspaceRole,
 }: {
   workspaceId: string
-  initialWorkspace: any
+  initialWorkspace: Pick<Workspace, 'id' | 'name'> | null
   workspaceRole: string
 }) {
   const router = useRouter()
   const {
     data: locations,
-    isLoading,
-    isError,
-    error,
     refetch,
-    isFetching,
   } = useLocations(workspaceId)
   const [isOpen, setIsOpen] = useState(false)
-  const [editingLocation, setEditingLocation] = useState<any>(null)
+  const [editingLocation, setEditingLocation] = useState<Location | null>(null)
   const [syncingId, setSyncingId] = useState<string | null>(null)
 
   const canManage = workspaceRole === 'owner' || workspaceRole === 'admin'
 
-  const handleSync = async (location: any) => {
+  const handleSync = async (location: Location) => {
     setSyncingId(location.id)
     try {
       const res = await syncLocationReviews(location.id, workspaceId)
@@ -91,7 +88,7 @@ export default function WorkspaceLocationsClient({
     }
   }
 
-  const renderLocationCard = (loc: any) => {
+  const renderLocationCard = (loc: Location) => {
     if (!loc.id) return
     const isSyncing = syncingId === loc.id
 
@@ -218,6 +215,7 @@ export default function WorkspaceLocationsClient({
         )}
       </div>
       <EditLocationModal
+        key={editingLocation?.id ?? 'no-location'}
         workspaceId={workspaceId}
         location={editingLocation}
         isOpen={!!editingLocation}

@@ -1,7 +1,7 @@
 // src/components/navbar/DashboardHeader.tsx
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   useRouter,
   usePathname,
@@ -17,6 +17,8 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { SidebarTrigger } from '@/components/ui/sidebar'
+import type { HeaderLocation, WorkspaceMemberWithWorkspace } from '@/types/models'
+import type { WorkspaceSummary } from '@/types/models'
 
 export function WorkspaceSidebarTrigger() {
   const pathname = usePathname()
@@ -45,8 +47,8 @@ export default function DashboardHeader() {
   const activeWorkspaceId = params.workspaceId as string
   const activeLocationId = searchParams.get('locationId')
 
-  const [workspaces, setWorkspaces] = useState<any[]>([])
-  const [locations, setLocations] = useState<any[]>([])
+  const [workspaces, setWorkspaces] = useState<Pick<WorkspaceSummary, 'id' | 'name'>[]>([])
+  const [locations, setLocations] = useState<HeaderLocation[]>([])
   const [loading, setLoading] = useState(true)
 
   const activeWorkspaceName = workspaces.find(
@@ -61,7 +63,7 @@ export default function DashboardHeader() {
       : 'Location'
     : '🌐 All Locations (Aggregated)'
 
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
 
   // Check if we are strictly on the base workspace dashboard (e.g. /dashboard/ws-123)
   // and NOT on sub-pages like /dashboard/ws-123/reviews or /dashboard/ws-123/locations
@@ -78,7 +80,9 @@ export default function DashboardHeader() {
           .select('workspaces(id, name)')
 
         const userWorkspaces =
-          memberData?.map((m: any) => m.workspaces).filter(Boolean) || []
+          (memberData as WorkspaceMemberWithWorkspace[] | null)
+            ?.map((member) => member.workspaces)
+            .filter((workspace): workspace is NonNullable<typeof workspace> => Boolean(workspace)) || []
         setWorkspaces(userWorkspaces)
 
         // 2. Fetch locations for the active workspace path slug
@@ -99,7 +103,7 @@ export default function DashboardHeader() {
     }
 
     loadHeaderData()
-  }, [activeWorkspaceId])
+  }, [activeWorkspaceId, supabase])
 
   const handleWorkspaceChange = (newWsId: string | null) => {
     if (!newWsId) return

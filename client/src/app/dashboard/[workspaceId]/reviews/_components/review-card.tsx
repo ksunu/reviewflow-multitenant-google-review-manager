@@ -2,9 +2,16 @@ import { Card, CardContent, CardHeader, CardFooter } from '@/components/ui/card'
 import { Star, Sparkles, CheckCircle2, Clock, AlertCircle } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { AIReplyDialog } from '@/components/ai/ai-reply-dialog'
+import type { Review, ReviewStatus } from '@/types/models'
 
-export default function ReviewCard({ review, workspaceId }: any) {
-  const getStatusBadge = (status: string) => {
+export default function ReviewCard({
+  review,
+  workspaceId,
+}: {
+  review: Review
+  workspaceId: string
+}) {
+  const getStatusBadge = (status: ReviewStatus | null) => {
     switch (status) {
       case 'replied':
         return (
@@ -57,7 +64,7 @@ export default function ReviewCard({ review, workspaceId }: any) {
                 />
               ))}
               <span className="text-xs text-muted-foreground ml-2 font-mono">
-                {new Date(review.review_date).toLocaleDateString()}
+                {new Date(review.review_date ?? review.created_at).toLocaleDateString()}
               </span>
             </div>
           </div>
@@ -66,7 +73,7 @@ export default function ReviewCard({ review, workspaceId }: any) {
       </CardHeader>
       <CardContent className="space-y-4 pb-4">
         <p className="text-sm text-foreground/90 bg-muted/30 p-3 rounded-lg border">
-          &ldquo;{review.review_text || 'No review text provided.'}
+          &ldquo;{review.review_text || review.comment || 'No review text provided.'}
           &rdquo;
         </p>
 
@@ -89,8 +96,8 @@ export default function ReviewCard({ review, workspaceId }: any) {
           review={{
             id: review.id,
             rating: review.rating,
-            review_text: review.review_text,
-            author_name: review.author_name,
+            review_text: review.review_text ?? review.comment ?? '',
+            author_name: review.author_name ?? 'Valued Customer',
           }}
         />
       </CardFooter>

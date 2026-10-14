@@ -37,6 +37,10 @@ export function SentimentBreakdownChart({
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const supabase = useMemo(() => createClient(), [])
+  const hasTargetWorkspace =
+    selectedWorkspaceId === 'all'
+      ? workspaceIds.length > 0
+      : workspaceIds.includes(selectedWorkspaceId)
 
   useEffect(() => {
     let cancelled = false
@@ -48,16 +52,10 @@ export function SentimentBreakdownChart({
           : []
 
     if (targetIds.length === 0) {
-      setCounts(EMPTY_COUNTS)
-      setError(null)
-      setLoading(false)
       return () => {
         cancelled = true
       }
     }
-
-    setLoading(true)
-    setError(null)
 
     async function loadSentimentCounts() {
       try {
@@ -98,18 +96,28 @@ export function SentimentBreakdownChart({
       }
     }
 
-    void loadSentimentCounts()
+    void Promise.resolve().then(() => {
+      if (cancelled) return
+      setLoading(true)
+      setError(null)
+      void loadSentimentCounts()
+    })
 
     return () => {
       cancelled = true
     }
   }, [workspaceIds, selectedWorkspaceId, supabase])
 
-  const positive = counts.positive
-  const neutral = counts.neutral
-  const negative = counts.negative
-  const unanalyzed = counts.unanalyzed
-  const total = positive + neutral + negative + unanalyzed
+  const visibleCounts = hasTargetWorkspace ? counts : EMPTY_COUNTS
+  const visibleLoading = hasTargetWorkspace && loading
+  const visibleError = hasTargetWorkspace ? error : null
+  const positive = visibleCounts.positive
+  const neutral = visibleCounts.neutral
+  const negative = visibleCounts.negative
+  const unanalyzed = visibleCounts.unanalyzed
+  const total = hasTargetWorkspace
+    ? positive + neutral + negative + unanalyzed
+    : 0
 
   const chartData = [
     {
@@ -140,13 +148,13 @@ export function SentimentBreakdownChart({
 
   return (
     <Card className="overflow-hidden border-border bg-card shadow-sm">
-      {loading ? (
+      {visibleLoading ? (
         <div className="flex h-[340px] items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
-      ) : error ? (
+      ) : visibleError ? (
         <div className="flex h-[340px] items-center justify-center px-6 text-center text-sm text-muted-foreground">
-          {error}
+          {visibleError}
         </div>
       ) : (
         <>

@@ -47,9 +47,13 @@ export default function NewLocationPage() {
       // Redirect back to locations list
       router.push(`/dashboard/${workspaceId}/locations`)
       router.refresh()
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error creating location:', err)
-      setError(err.message || 'Failed to create location. Please try again.')
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Failed to create location. Please try again.',
+      )
       setLoading(false)
     }
   }

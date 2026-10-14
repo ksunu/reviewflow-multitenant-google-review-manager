@@ -20,7 +20,6 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
-import { EmptyState } from '@/components/ui/empty-state'
 
 export default function WorkspaceOverviewPage() {
   const params = useParams()

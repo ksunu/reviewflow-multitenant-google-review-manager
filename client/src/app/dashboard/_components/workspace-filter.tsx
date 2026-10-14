@@ -21,9 +21,10 @@ import {
 } from '@/components/ui/carousel'
 import WorkspaceCardActions from './workspace-card-actions'
 import Link from 'next/link'
+import type { WorkspaceSummary } from '@/types/models'
 
 interface WorkspaceFilterProps {
-  workspaces: any[]
+  workspaces: WorkspaceSummary[]
   locationCountsMap: Record<string, number>
 }
 
@@ -32,13 +33,12 @@ export default function WorkspaceFilter({
   locationCountsMap,
 }: WorkspaceFilterProps) {
   const [searchQuery, setSearchQuery] = useState('')
-  console.log(workspaces)
   // Filter workspaces based on input query (case-insensitive)
   const filteredWorkspaces = workspaces.filter((workspace) =>
     workspace.name.toLowerCase().includes(searchQuery.toLowerCase()),
   )
 
-  const renderWorkspaceCard = (workspace: any) => {
+  const renderWorkspaceCard = (workspace: WorkspaceSummary) => {
     const locationCount = locationCountsMap[workspace.id] || 0
     const canManage = workspace.role === 'owner' || workspace.role === 'admin'
 
