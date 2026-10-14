@@ -98,8 +98,11 @@ Run commands from `client/`:
 yarn dev
 yarn lint
 yarn build
+yarn test
 ```
 
-`client/package.json` does not define a test script and the repository has no configured test suite. Do not claim tests passed unless a test setup is added and run. `git diff --check` is a useful whitespace check, not a test.
+Vitest is configured in `client/vitest.config.ts`; React hook tests use `@testing-library/react` with jsdom. The test suite covers workspace membership authorization, unauthorized AI reply requests, request validation and atomic quota-RPC invocation, and selected-workspace analytics filtering. These tests mock Supabase and do not replace database-backed verification of live RLS policies or RPC behavior.
+
+The GitHub Actions workflow at `.github/workflows/ci.yml` runs `npm run lint`, `npm run build`, and `npm run test` on pull requests targeting `main`. Build-only placeholder Supabase settings are configured in CI; no service credentials are required by the unit tests.
 
 When making changes, keep authorization at each server-side entry point, match queries to the live Supabase schema, preserve the atomic AI-save and review-deduplication invariants, and avoid editing dependencies/generated output. The user prefers one prioritized change at a time with a concise explanation before moving to the next item.
