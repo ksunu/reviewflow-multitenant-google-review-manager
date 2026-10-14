@@ -9,12 +9,12 @@ const openai = process.env.OPENAI_API_KEY
   : null
 const aiReplyRequestSchema = z.object({
   reviewId: z.string().uuid(),
-  internalContext: z.string().max(3000).optional().default(''),
+  internalContext: z.string().trim().max(3000).optional().default(''),
   tone: z
     .enum(['empathetic', 'firm', 'dispute'])
     .optional()
     .default('empathetic'),
-})
+}).strict()
 
 type ReviewSentiment = 'positive' | 'neutral' | 'negative'
 
@@ -83,6 +83,26 @@ export async function POST(
 ) {
   try {
     const { workspaceId } = await params
+
+    const parsedWorkspaceId = z.string().uuid().safeParse(workspaceId)
+    if (!parsedWorkspaceId.success) {
+      return NextResponse.json(
+        { error: 'Invalid workspace ID' },
+        { status: 400 },
+      )
+    }
+
+    // Check authentication and membership before parsing request data, reading
+    // workspace quota, or invoking any AI provider.
+    const access = await getWorkspaceAuthorization(parsedWorkspaceId.data)
+    if (!access.authorized) {
+      return NextResponse.json(
+        { error: access.status === 401 ? 'Unauthorized' : 'Forbidden' },
+        { status: access.status },
+      )
+    }
+    const { supabase } = access
+
     let requestBody: unknown
     try {
       requestBody = await request.json()
@@ -98,20 +118,14 @@ export async function POST(
       )
     }
     const { reviewId, internalContext, tone } = parsedBody.data
-    const access = await getWorkspaceAuthorization(workspaceId)
-    if (!access.authorized) {
-      return NextResponse.json(
-        { error: access.status === 401 ? 'Unauthorized' : 'Forbidden' },
-        { status: access.status },
-      )
-    }
-    const { supabase } = access
 
     // 1. Fetch Workspace data & quota limits
     const { data: workspace, error: wsError } = await supabase
       .from('workspaces')
-      .select('*')
-      .eq('id', workspaceId)
+      .select(
+        'id, name, business_type, ai_reply_limit, ai_replies_used_this_month',
+      )
+      .eq('id', parsedWorkspaceId.data)
       .single()
 
     if (wsError || !workspace) {
@@ -145,13 +159,13 @@ export async function POST(
       `,
       )
       .eq('id', reviewId)
-      .eq('workspace_id', workspaceId)
+      .eq('workspace_id', parsedWorkspaceId.data)
       .single()
 
     if (revError || !review) {
       return NextResponse.json({ error: 'Review not found' }, { status: 404 })
     }
-    if (review.locations?.workspace_id !== workspaceId) {
+    if (review.locations?.workspace_id !== parsedWorkspaceId.data) {
       return NextResponse.json(
         { error: 'Review location mismatch' },
         { status: 409 },
@@ -320,7 +334,7 @@ Guidelines:
     const { data: usage, error: saveError } = await supabase.rpc(
       'save_ai_reply_atomically',
       {
-        p_workspace_id: workspaceId,
+        p_workspace_id: parsedWorkspaceId.data,
         p_review_id: reviewId,
         p_reply: cleanedReply,
         p_sentiment: sentiment,
@@ -361,10 +375,10 @@ Guidelines:
       sentiment,
       usage,
     })
-  } catch (err: any) {
+  } catch (err) {
     console.error('AI reply error:', err)
     return NextResponse.json(
-      { error: err.message || 'Failed to generate AI response' },
+      { error: 'Failed to generate AI response' },
       { status: 500 },
     )
   }

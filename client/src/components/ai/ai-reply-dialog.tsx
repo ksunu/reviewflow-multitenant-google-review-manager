@@ -60,8 +60,6 @@ export function AIReplyDialog({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           reviewId: review.id,
-          rating: review.rating,
-          review_text: review.review_text,
           internalContext,
           tone,
         }),
