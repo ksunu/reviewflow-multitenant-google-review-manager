@@ -8,7 +8,7 @@ export interface OnboardingState {
   error?: string
 }
 
-export async function completeOnboarding(
+export async function completeOnboardingAction(
   _previousState: OnboardingState,
   formData: FormData,
 ): Promise<OnboardingState> {

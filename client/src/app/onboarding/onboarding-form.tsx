@@ -1,10 +1,13 @@
 'use client'
 
 import { useActionState } from 'react'
-import { completeOnboarding } from './actions'
+import { completeOnboardingAction } from '@/app/actions/onboarding'
 
 export function OnboardingForm() {
-  const [state, formAction, pending] = useActionState(completeOnboarding, {})
+  const [state, formAction, pending] = useActionState(
+    completeOnboardingAction,
+    {},
+  )
 
   return (
     <form action={formAction} className="space-y-4">
@@ -58,7 +61,9 @@ export function OnboardingForm() {
         disabled={pending}
         className="w-full rounded-md bg-primary py-2.5 text-sm font-medium text-primary-foreground shadow-sm shadow-primary/20 transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {pending ? 'Creating workspace…' : 'Complete Setup & Launch Dashboard →'}
+        {pending
+          ? 'Creating workspace…'
+          : 'Complete Setup & Launch Dashboard →'}
       </button>
     </form>
   )
