@@ -21,7 +21,7 @@ Next.js project guidance is in `client/AGENTS.md`. It requires checking the inst
 ## Main user flows
 
 1. **Sign-in and registration:** `client/src/app/page.tsx` opens `AuthModal`. `AuthModal` uses Supabase email/password sign-up and sign-in.
-2. **Workspace selection and creation:** `/dashboard` loads the user’s workspace memberships. `/dashboard/new` calls the `create_workspace` Supabase RPC. Workspace pages are under `/dashboard/[workspaceId]`.
+2. **Workspace selection and creation:** `/dashboard` loads the user’s workspace memberships. `/dashboard/new` calls the `create_workspace` Supabase RPC. First-time onboarding at `/onboarding` calls `create_workspace_with_location` to atomically create the workspace, owner membership, and first location. Workspace pages are under `/dashboard/[workspaceId]`.
 3. **Workspace access:** `getWorkspaceAuthorization` in `client/src/lib/supabase/authorization.ts` verifies the current Supabase user and their `workspace_members` row. Server Actions and Route Handlers should enforce access themselves; do not rely only on a layout check.
 4. **Locations:** the workspace locations page loads locations and passes them to `locations-client.tsx`. Add/edit/delete operations use `client/src/app/actions/locations.ts`; the add-location UI uses Google Maps/Places components.
 5. **Review sync:** `syncLocationReviews` in `client/src/app/actions/syncReviews.ts` authorizes workspace membership, loads the selected location, requests Google Places reviews, validates rating/timestamp values, inserts unseen rows, and updates `locations.last_synced_at`. The review page calls this action and reports the number inserted.
@@ -30,21 +30,34 @@ Next.js project guidance is in `client/AGENTS.md`. It requires checking the inst
 
 ## Supabase data model
 
-The following summarizes the schema shared by the user for debugging. Confirm the live database before changing SQL; the supplied schema was described as context, not an executable migration.
+The user supplied a live Supabase schema inventory on 2026-10-14. Treat the details below as observed state, not as a migration. Confirm the live database again before changing SQL.
 
-- `workspaces`: `id`, `name`, `slug`, `business_type`, `ai_replies_used_this_month`, `ai_reply_limit`, `created_at`. The shared schema does **not** include `subscription_tier`, `language`, or a direct tenant relationship.
-- `workspace_members`: `workspace_id`, `user_id`, and role (`owner`, `admin`, `member`); `user_id` references `auth.users`.
-- `locations`: workspace ownership, name, Google Place ID, address/coordinates, business type, `last_synced_at`.
-- `reviews`: workspace/location ownership, rating, author, review content/date, sentiment, AI draft, status, reply status, and Google metadata. In the shared schema, `review_date` is `text`; `sentiment` is nullable `text` (not an enum/check-constrained column). Expected analyzed values are `positive`, `neutral`, and `negative`; `NULL` means the review has not been analyzed.
-- `tenants`, `tenant_users`, and `operational_digests` also exist in the supplied schema, but no workspace-to-tenant relationship was shown. Do not assume tenant subscription state can be used for a workspace until that relationship is established.
-- RLS policies refer to helpers such as `user_belongs_to_workspace` and `check_user_workspace_role`; some supplied policy expressions also query `workspace_members` directly.
+- `workspaces`: `id` (UUID PK), `name`, `slug` (unique), `created_at`, `business_type`, `ai_replies_used_this_month` (default 0), and `ai_reply_limit` (default 10). The live inventory does **not** include `subscription_tier`, `language`, or a direct tenant relationship.
+- `workspace_members`: `id` (UUID PK), `workspace_id`, `user_id`, `role` (`owner`, `admin`, `member`, default `member`), and `created_at`. `(workspace_id, user_id)` is unique; role has a check constraint; workspace and auth user references cascade on delete.
+- `locations`: `id`, `workspace_id`, `name`, Google Place ID, address/coordinates, business type, `last_synced_at`, and `created_at`. `workspace_id` references `workspaces(id)` with `ON DELETE CASCADE`.
+- `reviews`: workspace/location ownership, rating (check constrained to 1–5), author, review content/date, sentiment, AI draft, status, reply status, and Google metadata. `review_date` is `text`; `sentiment` is nullable `text` (not an enum/check-constrained column). Expected analyzed values are `positive`, `neutral`, and `negative`; `NULL` means the review has not been analyzed. Workspace and location foreign keys cascade on delete.
+- `tenants`, `tenant_users`, and `operational_digests` also exist. `tenant_users` has a unique `(tenant_id, user_id)` pair and role check (`owner`, `manager`, `staff`). The inventory shows no workspace-to-tenant relationship; do not assume tenant subscription state applies to a workspace.
+
+### Live RLS and policy notes
+
+- In the user's subsequently applied SQL, RLS remains enabled but not forced on `locations`, `reviews`, `tenant_users`, `tenants`, `workspace_members`, and `workspaces`.
+- The applied SQL replaces overlapping workspace policies with member SELECT and admin UPDATE/DELETE policies on `workspaces`; member SELECT and admin INSERT/DELETE policies on `workspace_members`; and one workspace-scoped `FOR ALL` policy on each of `locations` and `reviews`. The policy expressions call the authorization helpers through scalar subqueries.
+- The SQL drops the permissive legacy `tenants` and `tenant_users` policies and revokes all table privileges from `PUBLIC`, `anon`, and `authenticated`. These tables and their rows remain for legacy `operational_digests` data; the app must use workspaces for new customer data.
+- `user_belongs_to_workspace(uuid)`, `check_user_workspace_role(uuid,uuid,text)`, `create_workspace(text,text)`, and `create_workspace_with_location(text,text,text)` are `SECURITY DEFINER` with an empty `search_path` and fully qualified table references. The membership-role helper also requires its `p_user_id` to equal `auth.uid()`. Execute is revoked from `PUBLIC` and `anon` and granted to `authenticated`.
+- The applied SQL adds `locations(id, workspace_id)` uniqueness and a composite `reviews(location_id, workspace_id)` foreign key to that pair, with cascading delete. It first checks for mismatched existing review/location workspace IDs and aborts if any are found. The old single-column `reviews_location_id_fkey` is dropped; the separate review-to-workspace FK remains.
+- The review uniqueness identity appears redundantly constrained: both `reviews_unique_constraint` and `reviews_unique_natural_key` enforce `(workspace_id, location_id, review_date, author_name)`. The user also previously confirmed a unique index named `reviews_workspace_location_review_identity_idx` on those same columns. The inventory query did not enumerate indexes, so inspect actual index definitions before removing or renaming any duplicate.
+- Observed delete behavior includes cascading workspace deletion to locations/members/reviews and location deletion to reviews. Tenant deletion cascades to tenant memberships and operational digests.
 
 ### Database functions and indexes expected by the app
 
 - `public.save_ai_reply_atomically(uuid, uuid, text, text)` saves an AI draft and increments `workspaces.ai_replies_used_this_month` atomically, after membership, review ownership, posted-state, and quota checks. Its `search_path` was corrected to `public, auth, pg_temp` after a `42P01` relation error in RLS evaluation.
+- `public.create_workspace(text, text)` creates a workspace and its owner membership. `public.create_workspace_with_location(text, text, text)` additionally creates its first location in the same transaction. Both require an authenticated user, reject blank required values, use a fixed empty `search_path`, and are executable only by `authenticated` in the applied SQL.
 - Pending Supabase application: migration `supabase/migrations/202610130001_allow_unanalyzed_ai_reply.sql` allows `p_sentiment` to be `NULL` and preserves the review's current sentiment in that case. This is required because `NULL` means “not analyzed”; AI reply drafting is not sentiment analysis.
 - `public.reviews_workspace_location_review_identity_idx` is a unique index on `(workspace_id, location_id, review_date, author_name)`. The user confirmed this exact index exists in Supabase. Review sync uses it as its upsert conflict target and ignores duplicates to preserve existing replies/statuses.
+- The 2026-10-14 inventory also reports two unique constraints on the same review identity columns (`reviews_unique_constraint`, `reviews_unique_natural_key`). Do not drop constraints/indexes until the live index list and migration history clarify which definitions are redundant and which name the app's `ON CONFLICT` target relies on.
 - The confirmed RPC and unique review index exist in Supabase; the RPC update is versioned in `supabase/migrations/202610130001_allow_unanalyzed_ai_reply.sql`. Keep future database schema changes in versioned migrations.
+
+The user applied additional workspace authorization and onboarding SQL directly in Supabase. The corresponding SQL was shared in chat; verify that it is recorded in the repository's migration history before relying on a clean database setup to reproduce it.
 
 ## External services and environment variables
 
