@@ -4,6 +4,8 @@ ReviewFlow is a multi-tenant review management app for businesses that operate m
 
 > Portfolio project / MVP. Google review import currently uses the Places Details Legacy API, which returns up to five reviews per request. Read the limitations below before treating this as a complete review-ingestion system.
 
+> **Planned contribution:** Apify-based collection for importing a broader set of Google reviews is not implemented yet. This is a possible next step for anyone interested in extending the project. If you’d like to explore or contribute an integration, open a GitHub issue or contact me through GitHub for more context.
+
 ## Features
 
 - Supabase email/password authentication and first-workspace onboarding.
