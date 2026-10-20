@@ -42,6 +42,13 @@ build/Release
 node_modules/
 jspm_packages/
 
+# Local editor and operating-system files
+.vscode/
+.idea/
+.DS_Store
+*.swp
+*.swo
+
 # Snowpack dependency directory (https://snowpack.dev/)
 web_modules/
 
@@ -78,6 +85,8 @@ web_modules/
 .env.test.local
 .env.production.local
 .env.local
+.env.*
+!.env.example
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
@@ -86,6 +95,8 @@ web_modules/
 # Next.js build output
 .next
 out
+.vercel
+next-env.d.ts
 
 # Nuxt.js build / generate output
 .nuxt

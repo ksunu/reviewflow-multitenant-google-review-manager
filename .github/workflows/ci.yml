@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: client
+        working-directory: .
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -20,22 +20,22 @@ jobs:
         with:
           node-version: 22
           cache: yarn
-          cache-dependency-path: client/yarn.lock
+          cache-dependency-path: yarn.lock
 
       - name: Install dependencies
         id: install
         run: yarn install --frozen-lockfile
 
       - name: Lint
-        run: npm run lint
+        run: yarn lint
 
       - name: Build
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
-        run: npm run build
+        run: yarn build
         env:
           NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ci-placeholder-key
 
       - name: Test
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
-        run: npm run test
+        run: yarn test

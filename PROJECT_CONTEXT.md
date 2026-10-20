@@ -1,36 +1,36 @@
-# Review Manager: Project Context for LLMs
+# ReviewFlow: Project Context for LLMs
 
 ## Product and stack
 
-Review Manager is a multi-workspace web app for managing Google business locations and reviews, drafting AI responses, and collaborating with workspace members. The application lives under `client/` and uses Next.js 16 App Router, React 19, TypeScript, Supabase Auth/Postgres/RLS, Google Maps/Places, and optional Ollama/OpenAI generation.
+ReviewFlow is a multi-workspace web app for managing Google business locations and reviews, drafting AI responses, and collaborating with workspace members. The Next.js app now lives at the repository root and uses Next.js 16 App Router, React 19, TypeScript, Supabase Auth/Postgres/RLS, Google Maps/Places, and optional Ollama/OpenAI generation.
 
-Use `client/src/` as the source root. The TypeScript alias `@/*` maps to `client/src/*`.
+Use `src/` as the source root. The TypeScript alias `@/*` maps to `src/*`.
 
 ## Architecture
 
-- `client/src/app/`: route pages, layouts, Route Handlers, and Server Actions.
-- `client/src/components/`: shared UI, auth, dashboard, location, map, and review components.
-- `client/src/lib/supabase/`: browser and cookie-backed server clients, current-user lookup, and workspace authorization.
-- `client/src/lib/ai/`: AI response schema/prompt utilities.
-- `client/src/lib/helpers/`: Google Places data helpers.
-- `client/src/lib/i18n/`: English/Spanish i18next setup; locale JSON is under `client/public/locales/`.
-- `client/src/components/ui/`: local UI primitives; keep these if imported by active pages/components.
+- `src/app/`: route pages, layouts, Route Handlers, and Server Actions.
+- `src/components/`: shared UI, auth, dashboard, location, map, and review components.
+- `src/lib/supabase/`: browser and cookie-backed server clients, current-user lookup, and workspace authorization.
+- `src/lib/ai/`: AI response schema/prompt utilities.
+- `src/lib/helpers/`: Google Places data helpers.
+- `src/lib/i18n/`: English/Spanish i18next setup; locale JSON is under `public/locales/`.
+- `src/components/ui/`: local UI primitives; keep these if imported by active pages/components.
 
-Next.js project guidance is in `client/AGENTS.md`. It requires checking the installed Next.js documentation under `client/node_modules/next/dist/docs/` before changing Next-specific APIs.
+Next.js project guidance is in `AGENTS.md`. It requires checking the installed Next.js documentation under `node_modules/next/dist/docs/` before changing Next-specific APIs.
 
 ## Main user flows
 
-1. **Sign-in and registration:** `client/src/app/page.tsx` opens `AuthModal`. `AuthModal` uses Supabase email/password sign-up and sign-in.
+1. **Sign-in and registration:** `src/app/page.tsx` opens `AuthModal`. `AuthModal` uses Supabase email/password sign-up and sign-in.
 2. **Workspace selection and creation:** `/dashboard` loads the user’s workspace memberships. `/dashboard/new` calls the `create_workspace` Supabase RPC. First-time onboarding at `/onboarding` calls `create_workspace_with_location` to atomically create the workspace, owner membership, and first location. Workspace pages are under `/dashboard/[workspaceId]`.
-3. **Workspace access:** `getWorkspaceAuthorization` in `client/src/lib/supabase/authorization.ts` verifies the current Supabase user and their `workspace_members` row. Server Actions and Route Handlers should enforce access themselves; do not rely only on a layout check.
-4. **Locations:** the workspace locations page loads locations and passes them to `locations-client.tsx`. Add/edit/delete operations use `client/src/app/actions/locations.ts`; the add-location UI uses Google Maps/Places components.
-5. **Review sync:** `syncLocationReviews` in `client/src/app/actions/syncReviews.ts` authorizes workspace membership, loads the selected location, requests Google Places reviews, validates rating/timestamp values, inserts unseen rows, and updates `locations.last_synced_at`. The review page calls this action and reports the number inserted.
+3. **Workspace access:** `getWorkspaceAuthorization` in `src/lib/supabase/authorization.ts` verifies the current Supabase user and their `workspace_members` row. Server Actions and Route Handlers should enforce access themselves; do not rely only on a layout check.
+4. **Locations:** the workspace locations page loads locations and passes them to `locations-client.tsx`. Add/edit/delete operations use `src/app/actions/locations.ts`; the add-location UI uses Google Maps/Places components.
+5. **Review sync:** `syncLocationReviews` in `src/app/actions/syncReviews.ts` authorizes workspace membership, loads the selected location, requests Google Places reviews, validates rating/timestamp values, inserts unseen rows, and updates `locations.last_synced_at`. The review page calls this action and reports the number inserted.
 6. **AI reply draft:** `ReviewCard` opens `AIReplyDialog`, which posts to `/api/workspaces/[workspaceId]/ai-reply`. The handler validates input, authorizes the workspace, loads the review/location context, tries local Ollama, then optional OpenAI, then a template fallback. It saves the draft and consumes quota in the database through `save_ai_reply_atomically`.
 7. **Workspace team:** `/dashboard/[workspaceId]/team` lists and manages workspace members.
 
 ## Supabase data model
 
-The pulled schema under `client/supabase/migrations/` is now the project’s database reference. Read the migration files before any database refactor and keep this summary aligned with them. They capture Supabase state; confirm the live database before applying further changes.
+The pulled schema under `supabase/migrations/` is now the project’s database reference. Read the migration files before any database refactor and keep this summary aligned with them. They capture Supabase state; confirm the live database before applying further changes.
 
 - `20261014004753_remote_schema.sql` contains the full captured core schema: tables, indexes/constraints, helper/RPC function definitions, `workspace_review_stats`, role grants, and workspace RLS policies.
 - `20261014031231_remote_schema.sql` captures the revokes that remove `anon` and `authenticated` access to legacy `tenants` and `tenant_users`.
@@ -87,12 +87,12 @@ Names only; never put secret values in this file or commit them.
 - The 24-hour sync cooldown block is currently commented out in `syncReviews.ts` (user change). Subscription-tier gating cannot be correctly restored from the shared schema because it has no workspace tier field/relationship.
 - The mock-review endpoint at `/api/workspaces/[workspaceId]/sync` returns 404 in production; it exists only as a development helper.
 - `/api/ai/generate-reply` is a separate legacy Route Handler. No in-app caller was found during cleanup, but Route Handlers can be externally called, so review compatibility before deleting it.
-- `client/src/app/auth/callback/route.ts` is an auth callback; do not remove it solely because no component imports it. Supabase dashboard redirect configuration may call it.
+- `src/app/auth/callback/route.ts` is an auth callback; do not remove it solely because no component imports it. Supabase dashboard redirect configuration may call it.
 - AI provider calls use an 8-second Ollama timeout and a 20-second OpenAI timeout with retries disabled. If both providers fail, the handler uses a local template.
 
 ## Development and verification
 
-Run commands from `client/`:
+Run commands from the repository root:
 
 ```bash
 yarn dev
@@ -101,8 +101,8 @@ yarn build
 yarn test
 ```
 
-Vitest is configured in `client/vitest.config.ts`; React hook tests use `@testing-library/react` with jsdom. The test suite covers workspace membership authorization, unauthorized AI reply requests, request validation and atomic quota-RPC invocation, and selected-workspace analytics filtering. These tests mock Supabase and do not replace database-backed verification of live RLS policies or RPC behavior.
+Vitest is configured in `vitest.config.ts`; React hook tests use `@testing-library/react` with jsdom. The test suite covers workspace membership authorization, unauthorized AI reply requests, request validation and atomic quota-RPC invocation, and selected-workspace analytics filtering. These tests mock Supabase and do not replace database-backed verification of live RLS policies or RPC behavior.
 
-The GitHub Actions workflow at `.github/workflows/ci.yml` runs `npm run lint`, `npm run build`, and `npm run test` on pull requests targeting `main`. Build-only placeholder Supabase settings are configured in CI; no service credentials are required by the unit tests.
+The GitHub Actions workflow at `.github/workflows/ci.yml` runs lint, build, and test on pull requests targeting `main`. Build-only placeholder Supabase settings are configured in CI; no service credentials are required by the unit tests.
 
 When making changes, keep authorization at each server-side entry point, match queries to the live Supabase schema, preserve the atomic AI-save and review-deduplication invariants, and avoid editing dependencies/generated output. The user prefers one prioritized change at a time with a concise explanation before moving to the next item.
