@@ -51,7 +51,7 @@ export default function WorkspaceTeamPage() {
     }
 
     loadMembers()
-  }, [workspaceId, supabase])
+  }, [workspaceId, supabase, t])
 
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault()

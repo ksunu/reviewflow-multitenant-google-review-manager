@@ -19,6 +19,7 @@ import { useRouter } from 'next/navigation'
 import { extractPrimaryBusinessType } from '@/lib/helpers/place-helpers'
 import { addLocationAction } from '@/app/actions/locations'
 import type { Location } from '@/types/models'
+import { useTranslation } from 'react-i18next'
 
 export default function AddLocationModal({
   isOpen,
@@ -33,6 +34,7 @@ export default function AddLocationModal({
   locations: Location[]
   refetch: () => void
 }) {
+  const { t } = useTranslation()
   const router = useRouter()
 
   // Modal & Form State
@@ -177,10 +179,10 @@ export default function AddLocationModal({
         <form onSubmit={handleCreateLocation}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <MapPin className="w-5 h-5 text-primary" /> Add New Location
+              <MapPin className="w-5 h-5 text-primary" /> {t('locations.addTitle')}
             </DialogTitle>
             <DialogDescription>
-              Search your business address to pin it precisely on the map.
+              {t('locations.addDescription')}
             </DialogDescription>
           </DialogHeader>
 
@@ -193,26 +195,26 @@ export default function AddLocationModal({
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="address">Google Maps Search / Address</Label>
+              <Label htmlFor="address">{t('locations.mapSearch')}</Label>
               <Input
                 ref={inputRef}
                 id="address"
-                placeholder="Start typing your business address..."
+                placeholder={t('locations.addressPlaceholder')}
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
               />
               {googlePlaceId && (
                 <p className="text-xs font-medium text-emerald-400">
-                  ✓ Valid Google Place verified & linked
+                  ✓ {t('locations.googleVerified')}
                 </p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="name">Location Name / Branch</Label>
+              <Label htmlFor="name">{t('locations.branchName')}</Label>
               <Input
                 id="name"
-                placeholder="e.g. Downtown Flagship Store"
+                placeholder={t('locations.branchPlaceholder')}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
@@ -221,7 +223,7 @@ export default function AddLocationModal({
 
             {/* Interactive Map Preview */}
             <div className="space-y-2">
-              <Label>Map Verification Preview</Label>
+              <Label>{t('locations.mapPreview')}</Label>
               <div className="w-full h-48 rounded-lg overflow-hidden border relative bg-muted">
                 {latitude !== null &&
                 longitude !== null &&
@@ -241,8 +243,7 @@ export default function AddLocationModal({
                 ) : (
                   <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground p-4 text-center text-xs">
                     <MapPin className="w-6 h-6 mb-1 opacity-40" />
-                    Select an address from the dropdown above to preview its
-                    exact position on the map.
+                    {t('locations.mapPrompt')}
                   </div>
                 )}
               </div>

@@ -2,8 +2,10 @@
 
 import { useActionState } from 'react'
 import { completeOnboardingAction } from '@/app/actions/onboarding'
+import { useTranslation } from 'react-i18next'
 
 export function OnboardingForm() {
+  const { t } = useTranslation()
   const [state, formAction, pending] = useActionState(
     completeOnboardingAction,
     {},
@@ -25,7 +27,7 @@ export function OnboardingForm() {
           htmlFor="businessName"
           className="mb-1 block text-xs font-semibold uppercase text-muted-foreground"
         >
-          Business / Brand Name
+          {t('onboarding.businessName')}
         </label>
         <input
           id="businessName"
@@ -33,7 +35,7 @@ export function OnboardingForm() {
           type="text"
           required
           maxLength={120}
-          placeholder="e.g. Apex Fitness Chain"
+          placeholder={t('onboarding.businessPlaceholder')}
           className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
         />
       </div>
@@ -43,7 +45,7 @@ export function OnboardingForm() {
           htmlFor="locationName"
           className="mb-1 block text-xs font-semibold uppercase text-muted-foreground"
         >
-          First Location Name
+          {t('onboarding.locationName')}
         </label>
         <input
           id="locationName"
@@ -51,7 +53,7 @@ export function OnboardingForm() {
           type="text"
           required
           maxLength={120}
-          placeholder="e.g. Gangnam Branch"
+          placeholder={t('onboarding.locationPlaceholder')}
           className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
         />
       </div>
@@ -62,8 +64,8 @@ export function OnboardingForm() {
         className="w-full rounded-md bg-primary py-2.5 text-sm font-medium text-primary-foreground shadow-sm shadow-primary/20 transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {pending
-          ? 'Creating workspace…'
-          : 'Complete Setup & Launch Dashboard →'}
+          ? t('onboarding.creating')
+          : t('onboarding.complete')}
       </button>
     </form>
   )

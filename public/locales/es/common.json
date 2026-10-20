@@ -12,7 +12,8 @@
     "message": {
       "disposableEmail": "No se permiten direcciones de correo temporales. Usa una dirección válida personal o de trabajo.",
       "registrationSuccess": "Tu cuenta está lista. Revisa tu correo para continuar o inicia sesión."
-    }
+    },
+    "emailPlaceholder": "gerente@tuempresa.com"
   },
   "onboarding": {
     "title": "Te damos la bienvenida a ReviewFlow",
@@ -76,7 +77,8 @@
     "location": "Ubicación",
     "aggregated": "Todas",
     "organization": "Empresa",
-    "store": "Tienda"
+    "store": "Tienda",
+    "storeLocation": "Ubicación de la tienda"
   },
   "dashboard": {
     "welcome": "Te damos la bienvenida a ReviewFlow",
@@ -106,7 +108,9 @@
     "responseHealth": "Estado de las respuestas",
     "responseHealthDescription": "Reseñas resueltas y pendientes.",
     "resolved": "Resueltas / respondidas",
-    "pendingReview": "Reseñas pendientes"
+    "pendingReview": "Reseñas pendientes",
+    "acrossChannels": "En todos los canales sincronizados",
+    "forSelectedStore": "Para la tienda seleccionada"
   },
   "analytics": {
     "title": "Resumen de analíticas",
@@ -129,7 +133,10 @@
     "save": "Guardar cambios",
     "settings": "Configuración del espacio",
     "showingCount": "Mostrando {{shown}} de {{total}} espacios de trabajo",
-    "noneMatch": "No se encontraron espacios de trabajo que coincidan con “{{query}}”"
+    "noneMatch": "No se encontraron espacios de trabajo que coincidan con “{{query}}”",
+    "backToDashboard": "Volver al panel",
+    "createDescription": "Agrupa ubicaciones, reseñas de clientes e integrantes del equipo en un mismo espacio.",
+    "creating": "Creando espacio de trabajo…"
   },
   "locations": {
     "title": "Ubicaciones",
@@ -159,7 +166,16 @@
     "deleteConfirm": "¿Seguro que quieres eliminar esta ubicación y todas sus reseñas?",
     "deleteFailed": "No se pudo eliminar la ubicación",
     "locationSingular": "Ubicación",
-    "locationPlural": "Ubicaciones"
+    "locationPlural": "Ubicaciones",
+    "addDescription": "Busca la dirección de tu negocio para ubicarla con precisión en el mapa.",
+    "googleVerified": "Lugar de Google verificado y vinculado",
+    "mapPrompt": "Selecciona una dirección del menú para ver su ubicación exacta en el mapa.",
+    "backToLocations": "Volver a ubicaciones",
+    "newDescription": "Añade una tienda física o sucursal para gestionar sus reseñas en este espacio de trabajo.",
+    "newNamePlaceholder": "p. ej., Sucursal Centro #4",
+    "newAddressPlaceholder": "p. ej., Calle Principal 123, Ciudad",
+    "adding": "Añadiendo ubicación…",
+    "saveLocation": "Guardar ubicación"
   },
   "reviews": {
     "title": "Reseñas",
@@ -184,7 +200,10 @@
     "showing": "Mostrando {{start}} a {{end}} de {{count}} reseñas",
     "page": "Página {{current}} de {{total}}",
     "previous": "Anterior",
-    "next": "Siguiente"
+    "next": "Siguiente",
+    "noReviewText": "No se proporcionó texto para la reseña.",
+    "aiDraftedResponse": "Respuesta redactada con IA",
+    "source": "Origen"
   },
   "team": {
     "loadFailed": "No se pudo cargar el equipo.",

@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/label'
 import { updateLocationAction } from '@/app/actions/locations'
 import { Loader2 } from 'lucide-react'
 import type { Location } from '@/types/models'
+import { useTranslation } from 'react-i18next'
 
 export default function EditLocationModal({
   workspaceId,
@@ -28,6 +29,7 @@ export default function EditLocationModal({
   onClose: () => void
   onUpdated: (updatedLocation: Location) => void
 }) {
+  const { t } = useTranslation()
   const [name, setName] = useState(location?.name ?? '')
   const [address, setAddress] = useState(location?.address ?? '')
   const [loading, setLoading] = useState(false)
@@ -55,11 +57,11 @@ export default function EditLocationModal({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Edit Location</DialogTitle>
+          <DialogTitle>{t('locations.editTitle')}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 mt-2">
           <div className="space-y-2">
-            <Label htmlFor="name">Location Name</Label>
+            <Label htmlFor="name">{t('locations.name')}</Label>
             <Input
               id="name"
               value={name}
@@ -68,7 +70,7 @@ export default function EditLocationModal({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="address">Address</Label>
+            <Label htmlFor="address">{t('locations.address')}</Label>
             <Input
               id="address"
               value={address}
@@ -82,11 +84,11 @@ export default function EditLocationModal({
               onClick={onClose}
               disabled={loading}
             >
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button type="submit" disabled={loading}>
               {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              Save Changes
+              {t('common.save')}
             </Button>
           </DialogFooter>
         </form>

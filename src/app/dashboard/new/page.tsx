@@ -17,8 +17,10 @@ import {
 } from '@/components/ui/card'
 import Link from 'next/link'
 import type { CreateWorkspaceResult } from '@/types/models'
+import { useTranslation } from 'react-i18next'
 
 export default function NewWorkspacePage() {
+  const { t } = useTranslation()
   const router = useRouter()
   const supabase = createClient()
   const [name, setName] = useState('')
@@ -77,7 +79,7 @@ export default function NewWorkspacePage() {
       <div className="max-w-md w-full space-y-4">
         <Button asChild variant="ghost" size="sm" className="mb-2">
           <Link href="/dashboard">
-            <ArrowLeft className="w-4 h-4 mr-2" /> Back to Dashboard
+            <ArrowLeft className="w-4 h-4 mr-2" /> {t('workspace.backToDashboard')}
           </Link>
         </Button>
 
@@ -87,10 +89,9 @@ export default function NewWorkspacePage() {
               <div className="bg-primary/10 text-primary p-3 rounded-full w-fit mb-2">
                 <Building2 className="w-6 h-6" />
               </div>
-              <CardTitle className="text-xl">Create a Workspace</CardTitle>
+              <CardTitle className="text-xl">{t('workspace.createTitle')}</CardTitle>
               <CardDescription>
-                Workspaces allow you to group locations, client reviews, and
-                team members together.
+                {t('workspace.createDescription')}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -100,10 +101,10 @@ export default function NewWorkspacePage() {
                 </div>
               )}
               <div className="space-y-2">
-                <Label htmlFor="name">Workspace / Company Name</Label>
+                <Label htmlFor="name">{t('workspace.nameLabel')}</Label>
                 <Input
                   id="name"
-                  placeholder="e.g. Acme Agency or Downtown Cafe"
+                  placeholder={t('workspace.namePlaceholder')}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
@@ -114,11 +115,10 @@ export default function NewWorkspacePage() {
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? (
                   <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Creating
-                    workspace...
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" /> {t('workspace.creating')}
                   </>
                 ) : (
-                  'Create Workspace'
+                  t('workspace.createTitle')
                 )}
               </Button>
             </CardFooter>

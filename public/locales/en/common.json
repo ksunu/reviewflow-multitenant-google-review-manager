@@ -12,7 +12,8 @@
     "message": {
       "disposableEmail": "Disposable email addresses are not allowed. Please use a valid work or personal email address.",
       "registrationSuccess": "Your account was created. Check your email to continue, or sign in."
-    }
+    },
+    "emailPlaceholder": "manager@yourbusiness.com"
   },
   "onboarding": {
     "title": "Welcome to ReviewFlow",
@@ -76,7 +77,8 @@
     "location": "Location",
     "aggregated": "Aggregated",
     "organization": "Org",
-    "store": "Store"
+    "store": "Store",
+    "storeLocation": "Store location"
   },
   "dashboard": {
     "welcome": "Welcome to ReviewFlow",
@@ -106,7 +108,9 @@
     "responseHealth": "Response health",
     "responseHealthDescription": "Resolved and pending review threads.",
     "resolved": "Resolved / replied",
-    "pendingReview": "Pending review"
+    "pendingReview": "Pending review",
+    "acrossChannels": "Across all synced channels",
+    "forSelectedStore": "For selected store"
   },
   "analytics": {
     "title": "Analytics overview",
@@ -125,11 +129,14 @@
     "updateDescription": "Update the display name for this workspace.",
     "name": "Workspace name",
     "deleteConfirm": "Are you sure you want to delete this workspace?",
-    "deleteWarning": "This cannot be undone. The workspace and its locations, reviews, and synced data will be deleted.",
+    "deleteWarning": "This action cannot be undone. The workspace and its locations, reviews, and synced data will be deleted.",
     "save": "Save changes",
     "settings": "Workspace settings",
     "showingCount": "Showing {{shown}} of {{total}} workspaces",
-    "noneMatch": "No workspaces found matching “{{query}}”"
+    "noneMatch": "No workspaces found matching “{{query}}”",
+    "backToDashboard": "Back to dashboard",
+    "createDescription": "Group locations, customer reviews, and team members in one workspace.",
+    "creating": "Creating workspace…"
   },
   "locations": {
     "title": "Locations",
@@ -159,7 +166,16 @@
     "deleteConfirm": "Are you sure you want to delete this location and all its reviews?",
     "deleteFailed": "Failed to delete location",
     "locationSingular": "Location",
-    "locationPlural": "Locations"
+    "locationPlural": "Locations",
+    "addDescription": "Search your business address to pin it precisely on the map.",
+    "googleVerified": "Valid Google Place verified and linked",
+    "mapPrompt": "Select an address from the dropdown above to preview its exact position on the map.",
+    "backToLocations": "Back to locations",
+    "newDescription": "Add a physical storefront or business branch to track reviews under this workspace.",
+    "newNamePlaceholder": "e.g. Downtown Branch #4",
+    "newAddressPlaceholder": "e.g. 123 Main Street, City",
+    "adding": "Adding location…",
+    "saveLocation": "Save location"
   },
   "reviews": {
     "title": "Review feed",
@@ -184,7 +200,10 @@
     "showing": "Showing {{start}} to {{end}} of {{count}} reviews",
     "page": "Page {{current}} of {{total}}",
     "previous": "Previous",
-    "next": "Next"
+    "next": "Next",
+    "noReviewText": "No review text provided.",
+    "aiDraftedResponse": "AI drafted response",
+    "source": "Source"
   },
   "team": {
     "loadFailed": "Failed to load team members.",

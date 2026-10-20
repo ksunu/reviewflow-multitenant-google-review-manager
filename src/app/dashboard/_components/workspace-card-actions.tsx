@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { createClient } from '@/lib/supabase/client'
+import { useTranslation } from 'react-i18next'
 
 interface WorkspaceCardActionsProps {
   workspaceId: string
@@ -26,6 +27,7 @@ export default function WorkspaceCardActions({
   workspaceName,
   canManage,
 }: WorkspaceCardActionsProps) {
+  const { t } = useTranslation()
   const router = useRouter()
   const supabase = createClient()
 
@@ -84,7 +86,7 @@ export default function WorkspaceCardActions({
         className="text-xs h-7 px-2.5"
         onClick={() => setIsEditOpen(true)}
       >
-        <Pencil className="w-3 h-3 mr-1.5" /> Edit
+        <Pencil className="w-3 h-3 mr-1.5" /> {t('common.edit')}
       </Button>
 
       <Button
@@ -93,7 +95,7 @@ export default function WorkspaceCardActions({
         className="text-xs h-7 px-2.5 text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/20"
         onClick={() => setIsDeleteOpen(true)}
       >
-        <Trash2 className="w-3 h-3 mr-1.5" /> Delete
+        <Trash2 className="w-3 h-3 mr-1.5" /> {t('common.delete')}
       </Button>
 
       {/* Edit Modal */}
@@ -101,16 +103,16 @@ export default function WorkspaceCardActions({
         <DialogContent>
           <form onSubmit={handleUpdate}>
             <DialogHeader>
-              <DialogTitle>Edit Workspace Name</DialogTitle>
+              <DialogTitle>{t('workspace.editTitle')}</DialogTitle>
               <DialogDescription>
-                Update the display name for this workspace.
+                {t('workspace.updateDescription')}
               </DialogDescription>
             </DialogHeader>
             <div className="py-4">
               <Input
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
-                placeholder="Workspace name"
+                placeholder={t('workspace.name')}
                 required
               />
             </div>
@@ -120,11 +122,11 @@ export default function WorkspaceCardActions({
                 variant="outline"
                 onClick={() => setIsEditOpen(false)}
               >
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button type="submit" disabled={loading}>
                 {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                Save Changes
+                {t('workspace.save')}
               </Button>
             </DialogFooter>
           </form>
@@ -136,17 +138,10 @@ export default function WorkspaceCardActions({
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="text-destructive">
-              Are you absolutely sure?
+              {t('workspace.deleteConfirm')}
             </DialogTitle>
             <DialogDescription>
-              This action cannot be undone. This will permanently delete the
-              workspace
-              <span className="font-semibold text-foreground">
-                {' '}
-                {workspaceName}
-              </span>
-              , along with all associated locations, review records, and synced
-              data.
+              {t('workspace.deleteWarning')}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="mt-4">
@@ -155,7 +150,7 @@ export default function WorkspaceCardActions({
               variant="outline"
               onClick={() => setIsDeleteOpen(false)}
             >
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button
               variant="destructive"
@@ -163,7 +158,7 @@ export default function WorkspaceCardActions({
               disabled={loading}
             >
               {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              Delete Workspace
+              {t('common.delete')} {t('common.workspace')}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -20,8 +20,10 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
+import { useTranslation } from 'react-i18next'
 
 export default function WorkspaceOverviewPage() {
+  const { t } = useTranslation()
   const params = useParams()
   const searchParams = useSearchParams()
   const workspaceId = params.workspaceId as string
@@ -136,12 +138,12 @@ export default function WorkspaceOverviewPage() {
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold tracking-tight">
-          Workspace Overview
+          {t('dashboard.overview')}
         </h1>
         <p className="text-muted-foreground text-sm">
           {isAllLocations
-            ? 'Monitor aggregated review sentiment and performance across all active storefronts.'
-            : `Showing performance metrics for ${stats.selectedLocationName || 'selected location'}.`}
+            ? t('dashboard.overviewDescription')
+            : t('dashboard.selectedLocation', { location: stats.selectedLocationName || t('common.location') })}
         </p>
       </div>
 
@@ -150,7 +152,7 @@ export default function WorkspaceOverviewPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total Reviews
+              {t('dashboard.totalReviews')}
             </CardTitle>
             <MessageSquare className="w-4 h-4 text-primary" />
           </CardHeader>
@@ -158,8 +160,8 @@ export default function WorkspaceOverviewPage() {
             <div className="text-2xl font-bold">{stats.totalReviews}</div>
             <p className="text-xs text-muted-foreground mt-1">
               {isAllLocations
-                ? 'Across all synced channels'
-                : 'For selected store'}
+                ? t('dashboard.acrossChannels')
+                : t('dashboard.forSelectedStore')}
             </p>
           </CardContent>
         </Card>
@@ -167,7 +169,7 @@ export default function WorkspaceOverviewPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Average Rating
+              {t('dashboard.averageRating')}
             </CardTitle>
             <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
           </CardHeader>
@@ -179,7 +181,7 @@ export default function WorkspaceOverviewPage() {
               </span>
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              Overall customer sentiment
+              {t('dashboard.customerSentiment')}
             </p>
           </CardContent>
         </Card>
@@ -187,7 +189,7 @@ export default function WorkspaceOverviewPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Pending Action
+              {t('dashboard.pendingAction')}
             </CardTitle>
             <Clock className="w-4 h-4 text-orange-500" />
           </CardHeader>
@@ -196,7 +198,7 @@ export default function WorkspaceOverviewPage() {
               {stats.pendingReviews}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              Requiring review or AI reply
+              {t('dashboard.requiresReview')}
             </p>
           </CardContent>
         </Card>
@@ -204,14 +206,14 @@ export default function WorkspaceOverviewPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Managed Locations
+              {t('dashboard.managedLocations')}
             </CardTitle>
             <Store className="w-4 h-4 text-sky-400" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalLocations}</div>
             <p className="text-xs text-muted-foreground mt-1">
-              Active storefronts
+              {t('dashboard.activeStorefronts')}
             </p>
           </CardContent>
         </Card>
@@ -222,11 +224,10 @@ export default function WorkspaceOverviewPage() {
         <Card>
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-primary" /> Rating
-              Distribution
+              <TrendingUp className="w-5 h-5 text-primary" /> {t('dashboard.ratingDistribution')}
             </CardTitle>
             <CardDescription>
-              Breakdown of star ratings received from customers.
+              {t('dashboard.ratingDistributionDescription')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -256,17 +257,17 @@ export default function WorkspaceOverviewPage() {
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <CheckCircle2 className="w-5 h-5 text-emerald-500" /> Response
-              Health
+              {t('dashboard.responseHealth')}
             </CardTitle>
             <CardDescription>
-              Overview of resolved vs pending review threads.
+              {t('dashboard.responseHealthDescription')}
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col justify-center h-[260px] space-y-6">
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="font-medium text-emerald-400">
-                  Resolved / Replied
+                  {t('dashboard.resolved')}
                 </span>
                 <span className="font-bold">{stats.resolvedReviews}</span>
               </div>
@@ -283,7 +284,7 @@ export default function WorkspaceOverviewPage() {
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="font-medium text-orange-300">
-                  Pending Review
+                  {t('dashboard.pendingReview')}
                 </span>
                 <span className="font-bold">{stats.pendingReviews}</span>
               </div>

@@ -16,8 +16,10 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import Link from 'next/link'
+import { useTranslation } from 'react-i18next'
 
 export default function NewLocationPage() {
+  const { t } = useTranslation()
   const router = useRouter()
   const params = useParams()
   const workspaceId = params.workspaceId as string
@@ -63,7 +65,7 @@ export default function NewLocationPage() {
       <div className="max-w-md w-full space-y-4">
         <Button asChild variant="ghost" size="sm" className="mb-2">
           <Link href={`/dashboard/${workspaceId}/locations`}>
-            <ArrowLeft className="w-4 h-4 mr-2" /> Back to Locations
+            <ArrowLeft className="w-4 h-4 mr-2" /> {t('locations.backToLocations')}
           </Link>
         </Button>
 
@@ -73,10 +75,9 @@ export default function NewLocationPage() {
               <div className="bg-primary/10 text-primary p-3 rounded-full w-fit mb-2">
                 <MapPin className="w-6 h-6" />
               </div>
-              <CardTitle className="text-xl">Add New Location</CardTitle>
+              <CardTitle className="text-xl">{t('locations.addTitle')}</CardTitle>
               <CardDescription>
-                Add a physical storefront or business branch to track reviews
-                under this workspace.
+                {t('locations.newDescription')}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -86,20 +87,20 @@ export default function NewLocationPage() {
                 </div>
               )}
               <div className="space-y-2">
-                <Label htmlFor="name">Location Name</Label>
+                <Label htmlFor="name">{t('locations.name')}</Label>
                 <Input
                   id="name"
-                  placeholder="e.g. Downtown Branch #4"
+                  placeholder={t('locations.newNamePlaceholder')}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="address">Address (Optional)</Label>
+                <Label htmlFor="address">{t('locations.addressOptional')}</Label>
                 <Input
                   id="address"
-                  placeholder="e.g. 123 Main Street, City"
+                  placeholder={t('locations.newAddressPlaceholder')}
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                 />
@@ -109,11 +110,10 @@ export default function NewLocationPage() {
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? (
                   <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Adding
-                    location...
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" /> {t('locations.adding')}
                   </>
                 ) : (
-                  'Save Location'
+                  t('locations.saveLocation')
                 )}
               </Button>
             </CardFooter>

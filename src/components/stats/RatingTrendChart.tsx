@@ -111,7 +111,7 @@ export function RatingTrendChart({
     } finally {
       setLoading(false)
     }
-  }, [workspaceIds, selectedWorkspaceId, supabase])
+  }, [workspaceIds, selectedWorkspaceId, supabase, i18n.language])
 
   useEffect(() => {
     void Promise.resolve().then(fetchTrendData)
