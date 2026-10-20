@@ -13,7 +13,6 @@ import {
   Filter,
   Loader2,
   Store,
-  RefreshCw,
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react'
@@ -26,8 +25,6 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { EmptyState } from '@/components/ui/empty-state'
-import { toast } from 'sonner'
-import { syncLocationReviews } from '@/app/actions/syncReviews'
 import ReviewCard from '@/app/dashboard/[workspaceId]/reviews/_components/review-card'
 import type { Location, Review } from '@/types/models'
 import { useTranslation } from 'react-i18next'
@@ -49,10 +46,11 @@ export default function WorkspaceReviewsPage() {
   const selectedStatus = searchParams.get('status') || 'all'
 
   const [reviews, setReviews] = useState<Review[]>([])
-  const [locations, setLocations] = useState<Pick<Location, 'id' | 'name'>[]>([])
+  const [locations, setLocations] = useState<Pick<Location, 'id' | 'name'>[]>(
+    [],
+  )
   const [totalCount, setTotalCount] = useState(0)
   const [loading, setLoading] = useState(true)
-  const [syncing, setSyncing] = useState(false)
 
   const totalPages = Math.ceil(totalCount / pageSize)
 
@@ -67,39 +65,6 @@ export default function WorkspaceReviewsPage() {
       }
     })
     router.push(`${pathname}?${params.toString()}`)
-  }
-
-  const handleSyncReviews = async () => {
-    const targetLocationId =
-      selectedLocation !== 'all' ? selectedLocation : locations[0]?.id
-
-    if (!targetLocationId) {
-      toast.error(t('reviews.noLocations'))
-      return
-    }
-
-    setSyncing(true)
-    try {
-      const result = await syncLocationReviews(targetLocationId, workspaceId)
-
-      if (!result.success) {
-        toast.error(t('reviews.syncFailed', { error: result.error }))
-      } else {
-        const count = result.count ?? 0
-        toast.success(
-          count === 0
-            ? t('reviews.syncComplete')
-            : t('reviews.synced', { count }),
-        )
-        router.refresh()
-      }
-    } catch (error) {
-      toast.error(
-        t('reviews.syncFailed', { error: error instanceof Error ? error.message : t('common.unexpectedError') }),
-      )
-    } finally {
-      setSyncing(false)
-    }
   }
 
   const loadReviewsData = useCallback(async () => {
@@ -148,7 +113,15 @@ export default function WorkspaceReviewsPage() {
     } finally {
       setLoading(false)
     }
-  }, [locations.length, page, pageSize, selectedLocation, selectedStatus, supabase, workspaceId])
+  }, [
+    locations.length,
+    page,
+    pageSize,
+    selectedLocation,
+    selectedStatus,
+    supabase,
+    workspaceId,
+  ])
 
   useEffect(() => {
     void Promise.resolve().then(loadReviewsData)
@@ -160,24 +133,15 @@ export default function WorkspaceReviewsPage() {
       {/* Fixed Header & Filters */}
       <div className="shrink-0 flex flex-col md:flex-row md:items-center md:justify-between gap-4 w-full pb-4 border-b">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t('reviews.title')}</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            {t('reviews.title')}
+          </h1>
           <p className="text-muted-foreground text-sm">
             {t('reviews.description')}
           </p>
         </div>
 
         <div className="flex items-center gap-3 flex-wrap">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleSyncReviews}
-            disabled={syncing}
-            className="gap-2"
-          >
-            <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
-            {syncing ? t('reviews.syncing') : t('reviews.sync')}
-          </Button>
-
           {/* Location Filter */}
           <Select
             value={selectedLocation}
@@ -229,9 +193,15 @@ export default function WorkspaceReviewsPage() {
               <SelectValue placeholder={t('reviews.perPage', { count: 10 })} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="10">{t('reviews.perPage', { count: 10 })}</SelectItem>
-              <SelectItem value="25">{t('reviews.perPage', { count: 25 })}</SelectItem>
-              <SelectItem value="50">{t('reviews.perPage', { count: 50 })}</SelectItem>
+              <SelectItem value="10">
+                {t('reviews.perPage', { count: 10 })}
+              </SelectItem>
+              <SelectItem value="25">
+                {t('reviews.perPage', { count: 25 })}
+              </SelectItem>
+              <SelectItem value="50">
+                {t('reviews.perPage', { count: 50 })}
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -280,7 +250,11 @@ export default function WorkspaceReviewsPage() {
       {!loading && totalPages > 0 && (
         <div className="shrink-0 flex items-center justify-between w-full pt-4 border-t bg-background">
           <p className="text-sm text-muted-foreground">
-            {t('reviews.showing', { start: totalCount === 0 ? 0 : (page - 1) * pageSize + 1, end: Math.min(page * pageSize, totalCount), count: totalCount })}
+            {t('reviews.showing', {
+              start: totalCount === 0 ? 0 : (page - 1) * pageSize + 1,
+              end: Math.min(page * pageSize, totalCount),
+              count: totalCount,
+            })}
           </p>
 
           <div className="flex items-center gap-2">

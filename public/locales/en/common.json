@@ -181,7 +181,6 @@
     "title": "Review feed",
     "description": "Monitor customer feedback across your store locations and generate AI responses.",
     "syncing": "Syncing…",
-    "sync": "Sync reviews",
     "noLocations": "No locations available to sync.",
     "syncFailed": "Sync failed: {{error}}",
     "syncComplete": "Sync complete. No new reviews found.",
